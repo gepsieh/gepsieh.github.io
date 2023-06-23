@@ -29,7 +29,7 @@ DEFAULT_PAGINATION = 4
 #RELATIVE_URLS = True
 
 # Things for the theme
-THEME = 'C:\\Users\\13867\\Documents\\Python\\hachiroku_harem\\materialistic-pelican'
+THEME = 'materialistic-pelican'
 GOOGLE_PLUS_COMMENTS = True
 USE_CDN = True
 
