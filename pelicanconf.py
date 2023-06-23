@@ -36,6 +36,6 @@ USE_CDN = True
 STATIC_PATHS = ['images']
 
 # provide an absolute url here, for pages to work properly.
-USER_LOGO_URL = SITEURL + '/images/avatar.png'
+USER_LOGO_URL = SITEURL + '/content/images/avatar.png'
 # provide an absolute url here, for pages to work properly.
-USER_AVATAR_URL = SITEURL + '/images/avatar.png'
+USER_AVATAR_URL = SITEURL + '/content/images/avatar.png'
