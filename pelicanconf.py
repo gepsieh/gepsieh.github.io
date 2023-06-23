@@ -28,4 +28,14 @@ DEFAULT_PAGINATION = 10
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
 
+# Things for the theme
 THEME = 'C:\\Users\\13867\\Documents\\Python\\hachiroku_harem\\materialistic-pelican'
+GOOGLE_PLUS_COMMENTS = True
+USE_CDN = True
+
+STATIC_PATHS = ['images']
+
+# provide an absolute url here, for pages to work properly.
+# USER_LOGO_URL = SITEURL + '/images/logo.png'
+# provide an absolute url here, for pages to work properly.
+USER_AVATAR_URL = SITEURL + '/images/avatar.png'
