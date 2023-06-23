@@ -23,7 +23,7 @@ LINKS = (('osu!', 'https://osu.ppy.sh/'),
 SOCIAL = (('Twitter', 'https://twitter.com/heispeg'),
           ('Pixiv', 'https://www.pixiv.net/users/23193018'),)
 
-DEFAULT_PAGINATION = 10
+DEFAULT_PAGINATION = 4
 
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
