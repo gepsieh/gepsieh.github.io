@@ -1,0 +1,19 @@
+@font-face {
+  font-family: "kirafont"; /* Project id 4421281 */
+  src: url('iconfont.woff2?t=1706017267105') format('woff2'),
+       url('iconfont.woff?t=1706017267105') format('woff'),
+       url('iconfont.ttf?t=1706017267105') format('truetype');
+}
+
+.kirafont {
+  font-family: "kirafont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-steam:before {
+  content: "\e601";
+}
+
