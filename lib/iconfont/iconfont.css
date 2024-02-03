@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kirafont"; /* Project id 4422429 */
-  src: url('iconfont.woff2?t=1706938817056') format('woff2'),
-       url('iconfont.woff?t=1706938817056') format('woff'),
-       url('iconfont.ttf?t=1706938817056') format('truetype');
+  src: url('iconfont.woff2?t=1706939133622') format('woff2'),
+       url('iconfont.woff?t=1706939133622') format('woff'),
+       url('iconfont.ttf?t=1706939133622') format('truetype');
 }
 
 .kirafont {
@@ -11,6 +11,14 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-steam:before {
+  content: "\e686";
+}
+
+.icon-osu:before {
+  content: "\e987";
 }
 
 .icon-sousuo1:before {
@@ -61,7 +69,7 @@
   content: "\e882";
 }
 
-.icon-github-fill:before {
+.icon-github:before {
   content: "\e885";
 }
 
@@ -97,7 +105,7 @@
   content: "\e607";
 }
 
-.icon-bilibili-line:before {
+.icon-bilibili:before {
   content: "\e66d";
 }
 
