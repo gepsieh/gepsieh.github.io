@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kirafont"; /* Project id 4422429 */
-  src: url('iconfont.woff2?t=1706943166583') format('woff2'),
-       url('iconfont.woff?t=1706943166583') format('woff'),
-       url('iconfont.ttf?t=1706943166583') format('truetype');
+  src: url('iconfont.woff2?t=1706944598074') format('woff2'),
+       url('iconfont.woff?t=1706944598074') format('woff'),
+       url('iconfont.ttf?t=1706944598074') format('truetype');
 }
 
 .kirafont {
@@ -11,6 +11,10 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-link:before {
+  content: "\ec7f";
 }
 
 .icon-steam:before {
@@ -99,10 +103,6 @@
 
 .icon-tag-fill:before {
   content: "\e6c7";
-}
-
-.icon-link:before {
-  content: "\e607";
 }
 
 .icon-bilibili:before {

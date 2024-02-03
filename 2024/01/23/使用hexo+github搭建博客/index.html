@@ -349,7 +349,7 @@
 		
 		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
 			<a><i class="kirafont icon-calendar-fill"></i>2024年01月23日</a>
-			<a><i class="kirafont icon-edit-fill"></i>1.1k 字</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.2k 字</a>
 			<a><i class="kirafont icon-time-circle-fill"></i>大概 4 分钟</a>
 		</div>
 		<p>本来想写写如何使用 hexo + Github Pages 搭建博客，然而发现网上的教程已经相当详细，无需再写一篇雷同的文章。因此决定记录搭建此博客中使用的相关工具，希望对有志于搭建个人博客的后来者有所帮助。</p>
@@ -371,6 +371,7 @@
 <p>在默认情况下，这一项是被注释掉的，此时 kira-hexo 会使用自带的相关图标。如果想要自己添加图标，就需要使用这一项。</p>
 <p>然而，如果按注释中的样式，使用阿里云的链接，可能会有不稳定的问题 <del>（大概）</del>。因此，我希望能够打包内容到本地使用。此时，似乎 kira-hexo 就不再使用默认的图标，而只显示了我自行添加的新图标。如何解决这个问题呢？</p>
 <p>我的方案是，手动添加所有博客中出现的图标。虽然比较暴力，不过确实生效了。需要注意图标的名称要和配置文件中的相关引用保持一致，否则是无法显示出来的。</p>
+<p><strong>注意：在添加图标时，请注意保证 Unicode 字符和原来的字符名称相同，否则可能仍然无法正常显示。</strong> </p>
 <h2><span id="侧边栏项目无法访问显示-404">侧边栏项目无法访问，显示 404</span></h2><p>需要在 source&#x2F;_posts 文件夹中添加 about.md、archive.md、friends.md 来显示相关的页面。</p>
 <p>archive.md</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">title: 文章归档</span><br><span class="line">layout: archives</span><br><span class="line">---</span><br></pre></td></tr></table></figure>
