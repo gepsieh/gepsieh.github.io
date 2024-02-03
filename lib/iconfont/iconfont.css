@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kirafont"; /* Project id 4422429 */
-  src: url('iconfont.woff2?t=1706090740419') format('woff2'),
-       url('iconfont.woff?t=1706090740419') format('woff'),
-       url('iconfont.ttf?t=1706090740419') format('truetype');
+  src: url('iconfont.woff2?t=1706938817056') format('woff2'),
+       url('iconfont.woff?t=1706938817056') format('woff'),
+       url('iconfont.ttf?t=1706938817056') format('truetype');
 }
 
 .kirafont {
@@ -13,7 +13,103 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-steam:before {
-  content: "\ecc3";
+.icon-sousuo1:before {
+  content: "\e63e";
+}
+
+.icon-team:before {
+  content: "\e7ae";
+}
+
+.icon-container:before {
+  content: "\e7b0";
+}
+
+.icon-home:before {
+  content: "\e7c6";
+}
+
+.icon-menu:before {
+  content: "\e7f4";
+}
+
+.icon-unorderedlist:before {
+  content: "\e7f5";
+}
+
+.icon-huanyuanhuabu:before {
+  content: "\ec13";
+}
+
+.icon-quanping:before {
+  content: "\ec14";
+}
+
+.icon-calendar-fill:before {
+  content: "\e84d";
+}
+
+.icon-container-fill:before {
+  content: "\e85f";
+}
+
+.icon-edit-fill:before {
+  content: "\e86d";
+}
+
+.icon-QQ:before {
+  content: "\e882";
+}
+
+.icon-github-fill:before {
+  content: "\e885";
+}
+
+.icon-sousuobianxiao:before {
+  content: "\ec32";
+}
+
+.icon-sousuofangda:before {
+  content: "\ec33";
+}
+
+.icon-time-circle-fill:before {
+  content: "\e7ac";
+}
+
+.icon-guanbi:before {
+  content: "\e60d";
+}
+
+.icon-caret-up:before {
+  content: "\e8ec";
+}
+
+.icon-user:before {
+  content: "\e67f";
+}
+
+.icon-tag-fill:before {
+  content: "\e6c7";
+}
+
+.icon-charulianjie:before {
+  content: "\e607";
+}
+
+.icon-bilibili-line:before {
+  content: "\e66d";
+}
+
+.icon-AreaChart:before {
+  content: "\e605";
+}
+
+.icon-left:before {
+  content: "\e83d";
+}
+
+.icon-right:before {
+  content: "\e840";
 }
 
