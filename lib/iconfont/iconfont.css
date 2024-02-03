@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kirafont"; /* Project id 4422429 */
-  src: url('iconfont.woff2?t=1706939133622') format('woff2'),
-       url('iconfont.woff?t=1706939133622') format('woff'),
-       url('iconfont.ttf?t=1706939133622') format('truetype');
+  src: url('iconfont.woff2?t=1706943166583') format('woff2'),
+       url('iconfont.woff?t=1706943166583') format('woff'),
+       url('iconfont.ttf?t=1706943166583') format('truetype');
 }
 
 .kirafont {
@@ -21,7 +21,7 @@
   content: "\e987";
 }
 
-.icon-sousuo1:before {
+.icon-search:before {
   content: "\e63e";
 }
 
@@ -41,15 +41,15 @@
   content: "\e7f4";
 }
 
-.icon-unorderedlist:before {
+.icon-unordered-list:before {
   content: "\e7f5";
 }
 
-.icon-huanyuanhuabu:before {
+.icon-exit-fullscreen:before {
   content: "\ec13";
 }
 
-.icon-quanping:before {
+.icon-fullscreen:before {
   content: "\ec14";
 }
 
@@ -73,11 +73,11 @@
   content: "\e885";
 }
 
-.icon-sousuobianxiao:before {
+.icon-zoom-out:before {
   content: "\ec32";
 }
 
-.icon-sousuofangda:before {
+.icon-zoom-in:before {
   content: "\ec33";
 }
 
@@ -85,7 +85,7 @@
   content: "\e7ac";
 }
 
-.icon-guanbi:before {
+.icon-close:before {
   content: "\e60d";
 }
 
@@ -101,7 +101,7 @@
   content: "\e6c7";
 }
 
-.icon-charulianjie:before {
+.icon-link:before {
   content: "\e607";
 }
 
@@ -109,7 +109,7 @@
   content: "\e66d";
 }
 
-.icon-AreaChart:before {
+.icon-area-chart-fill:before {
   content: "\e605";
 }
 
