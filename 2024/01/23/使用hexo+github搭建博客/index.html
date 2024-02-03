@@ -349,8 +349,8 @@
 		
 		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
 			<a><i class="kirafont icon-calendar-fill"></i>2024年01月23日</a>
-			<a><i class="kirafont icon-edit-fill"></i>1.2k 字</a>
-			<a><i class="kirafont icon-time-circle-fill"></i>大概 4 分钟</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.3k 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 5 分钟</a>
 		</div>
 		<p>本来想写写如何使用 hexo + Github Pages 搭建博客，然而发现网上的教程已经相当详细，无需再写一篇雷同的文章。因此决定记录搭建此博客中使用的相关工具，希望对有志于搭建个人博客的后来者有所帮助。</p>
 <h2><span id="博客本体">博客本体</span></h2><p>我采用的是 hexo 来进行博客的搭建。hexo 生成的博客是静态页面，因此需要在本地生成后部署到云端。博客的具体内容需要使用 markdown 进行创作。这里我使用的是 VSCode，可以在写作的过程中预览实际的效果，感觉体验不错。</p>
@@ -372,7 +372,15 @@
 <p>然而，如果按注释中的样式，使用阿里云的链接，可能会有不稳定的问题 <del>（大概）</del>。因此，我希望能够打包内容到本地使用。此时，似乎 kira-hexo 就不再使用默认的图标，而只显示了我自行添加的新图标。如何解决这个问题呢？</p>
 <p>我的方案是，手动添加所有博客中出现的图标。虽然比较暴力，不过确实生效了。需要注意图标的名称要和配置文件中的相关引用保持一致，否则是无法显示出来的。</p>
 <p><strong>注意：在添加图标时，请注意保证 Unicode 字符和原来的字符名称相同，否则可能仍然无法正常显示。</strong> </p>
-<h2><span id="侧边栏项目无法访问显示-404">侧边栏项目无法访问，显示 404</span></h2><p>需要在 source&#x2F;_posts 文件夹中添加 about.md、archive.md、friends.md 来显示相关的页面。</p>
+<h2><span id="关于-social">关于 social</span></h2><p>这是一个 social 中的项目。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">QQ:</span><br><span class="line">        - tencent://AddContact/?fromId=45&amp;fromSubId=1&amp;subcmd=all&amp;uin=3143089438&amp;website=www.oicqzone.com</span><br><span class="line">        - icon-QQ</span><br><span class="line">        - rgb(49, 174, 255)</span><br><span class="line">        - rgba(49, 174, 255, .1)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>第一行用于定义点击后跳转的链接。</li>
+<li>第二行用于指定显示的图标名称，和 iconfont 中的 class name 应该是一致的。</li>
+<li>剩余两行应该是调节色彩使用的，我没有操作过。</li>
+</ul>
+<h2><span id="侧边栏项目无法访问显示-404">侧边栏项目无法访问，显示 404</span></h2><p>这是因为没有生成相关的相关网页文件的模板 markdown 文件，hexo 无法渲染网页，自然无法访问。需要在 source&#x2F;_posts 文件夹中添加 about.md、archive.md、friends.md，方便 hexo 渲染网页使我们能够访问相关的页面。</p>
 <p>archive.md</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">title: 文章归档</span><br><span class="line">layout: archives</span><br><span class="line">---</span><br></pre></td></tr></table></figure>
 
