@@ -1,8 +1,8 @@
 @font-face {
-  font-family: "kirafont"; /* Project id 4422429 */
-  src: url('iconfont.woff2?t=1707109714923') format('woff2'),
-       url('iconfont.woff?t=1707109714923') format('woff'),
-       url('iconfont.ttf?t=1707109714923') format('truetype');
+  font-family: "kirafont"; /* Project id 3299330 */
+  src: url('iconfont.woff2?t=1679498690298') format('woff2'),
+       url('iconfont.woff?t=1679498690298') format('woff'),
+       url('iconfont.ttf?t=1679498690298') format('truetype');
 }
 
 .kirafont {
@@ -13,52 +13,16 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-pixiv:before {
-  content: "\e600";
-}
-
-.icon-link:before {
-  content: "\ec7f";
-}
-
-.icon-steam:before {
-  content: "\e686";
-}
-
-.icon-osu:before {
-  content: "\e987";
-}
-
-.icon-search:before {
-  content: "\e63e";
-}
-
-.icon-team:before {
-  content: "\e7ae";
-}
-
-.icon-container:before {
-  content: "\e7b0";
-}
-
-.icon-home:before {
-  content: "\e7c6";
-}
-
-.icon-menu:before {
-  content: "\e7f4";
-}
-
 .icon-unordered-list:before {
   content: "\e7f5";
 }
 
-.icon-exit-fullscreen:before {
-  content: "\ec13";
+.icon-area-chart-fill:before {
+  content: "\e7af";
 }
 
-.icon-fullscreen:before {
-  content: "\ec14";
+.icon-time-circle-fill:before {
+  content: "\e848";
 }
 
 .icon-calendar-fill:before {
@@ -73,12 +37,24 @@
   content: "\e86d";
 }
 
-.icon-QQ:before {
-  content: "\e882";
+.icon-tag-fill:before {
+  content: "\e86e";
 }
 
-.icon-github:before {
-  content: "\e885";
+.icon-search:before {
+  content: "\e752";
+}
+
+.icon-close:before {
+  content: "\eb6a";
+}
+
+.icon-exit-fullscreen:before {
+  content: "\ec13";
+}
+
+.icon-fullscreen:before {
+  content: "\ec14";
 }
 
 .icon-zoom-out:before {
@@ -89,39 +65,55 @@
   content: "\ec33";
 }
 
-.icon-time-circle-fill:before {
-  content: "\e7ac";
+.icon-link:before {
+  content: "\ec7f";
 }
 
-.icon-close:before {
-  content: "\e60d";
+.icon-menu:before {
+  content: "\e7f4";
 }
 
 .icon-caret-up:before {
   content: "\e8ec";
 }
 
-.icon-user:before {
-  content: "\e67f";
-}
-
-.icon-tag-fill:before {
-  content: "\e6c7";
-}
-
 .icon-bilibili:before {
-  content: "\e66d";
+  content: "\e69e";
 }
 
-.icon-area-chart-fill:before {
-  content: "\e605";
+.icon-gitee:before {
+  content: "\e60c";
 }
 
-.icon-left:before {
-  content: "\e83d";
+.icon-container:before {
+  content: "\e7b0";
+}
+
+.icon-home:before {
+  content: "\e7c6";
 }
 
 .icon-right:before {
-  content: "\e840";
+  content: "\e7eb";
+}
+
+.icon-left:before {
+  content: "\e7ec";
+}
+
+.icon-QQ:before {
+  content: "\e882";
+}
+
+.icon-user:before {
+  content: "\e7ad";
+}
+
+.icon-team:before {
+  content: "\e7ae";
+}
+
+.icon-github:before {
+  content: "\e885";
 }
 
