@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="/css/layout.css">
 
 		
-		<title> Harem of Migita Suzu</title>
+		<title> 在 hexo 博客中添加 live2d 参考资料 -  Harem of Migita Suzu</title>
 		<link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" />
 		<script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"></script>
 		<!-- lazyload -->
@@ -90,7 +90,7 @@
 	<div class="kira-list">
 		
 		<a
-			class="kira-list-item mdui-ripple true"
+			class="kira-list-item mdui-ripple false"
 			href="/"
 			title="回到首页"
 		>
@@ -290,119 +290,155 @@
 			<div class="kira-content">
 				<div id="kira-top-header"></div>
 				<div class="kira-main-content">
-					<div class="kira-posts">
-    
-        <div class="kira-post">
-            <a href="/2024/02/10/%E5%9C%A8%20hexo%20%E5%8D%9A%E5%AE%A2%E4%B8%AD%E6%B7%BB%E5%8A%A0%20live2d%20%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99/">
-                
-                <div
-                    class="kira-post-cover mdui-ripple"
-                    style="padding-bottom: '56.25%'"
-                >
-                    <img
-                        data-src="https://raw.githubusercontent.com/gepsieh/my_pic/master/hexoblog.jpg"
-                        data-sizes="auto"
-                        alt="在 hexo 博客中添加 live2d 参考资料"
-                        class="lazyload kira-post-cover-image"
-                    />
-                    <h1>在 hexo 博客中添加 live2d 参考资料</h1>
-                </div>
-                
-            </a>
+					
+<link rel="stylesheet" href="/css/kira-image.css">
 
-            <div class="kira-post-meta kira-rainbow">
-                <a>
-                    <i class="kirafont icon-calendar-fill"></i>
-                    2024年02月10日
-                </a>
-                <a>
-                    <i class="kirafont icon-edit-fill"></i>
-                    167 字
-                </a>
-                <a>
-                    <i class="kirafont icon-time-circle-fill"></i>大概
-                    1 分钟
-                </a>
-            </div>
-    
-            
-        </div>
-        <div class="kira-hr"></div>
-    
-        <div class="kira-post">
-            <a href="/2024/02/03/%E4%B8%80%E4%B8%AA%20osu!%20%E7%8E%A9%E5%AE%B6%E7%9A%84%E8%87%AA%E6%88%91%E5%8F%8D%E7%9C%81/">
-                
-                <div
-                    class="kira-post-cover mdui-ripple"
-                    style="padding-bottom: '56.25%'"
-                >
-                    <img
-                        data-src="https://raw.githubusercontent.com/gepsieh/my_pic/master/retrospect.png"
-                        data-sizes="auto"
-                        alt="一个 osu! 玩家的自我反省"
-                        class="lazyload kira-post-cover-image"
-                    />
-                    <h1>一个 osu! 玩家的自我反省</h1>
-                </div>
-                
-            </a>
 
-            <div class="kira-post-meta kira-rainbow">
-                <a>
-                    <i class="kirafont icon-calendar-fill"></i>
-                    2024年02月03日
-                </a>
-                <a>
-                    <i class="kirafont icon-edit-fill"></i>
-                    1.5k 字
-                </a>
-                <a>
-                    <i class="kirafont icon-time-circle-fill"></i>大概
-                    6 分钟
-                </a>
-            </div>
-    
-            
-        </div>
-        <div class="kira-hr"></div>
-    
-        <div class="kira-post">
-            <a href="/2024/01/23/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%96%B9%E6%A1%88/">
-                
-                <div
-                    class="kira-post-cover mdui-ripple"
-                    style="padding-bottom: '56.25%'"
-                >
-                    <img
-                        data-src="https://raw.githubusercontent.com/gepsieh/my_pic/master/hexoblog.jpg"
-                        data-sizes="auto"
-                        alt="我的个人博客搭建方案"
-                        class="lazyload kira-post-cover-image"
-                    />
-                    <h1>我的个人博客搭建方案</h1>
-                </div>
-                
-            </a>
+<script src="/js/kira-image.js"></script>
 
-            <div class="kira-post-meta kira-rainbow">
-                <a>
-                    <i class="kirafont icon-calendar-fill"></i>
-                    2024年01月23日
-                </a>
-                <a>
-                    <i class="kirafont icon-edit-fill"></i>
-                    1.3k 字
-                </a>
-                <a>
-                    <i class="kirafont icon-time-circle-fill"></i>大概
-                    5 分钟
-                </a>
+<div class="kira-image">
+    <div class="kira-image-modal">
+        <div class="kira-image-header">
+            <div class="kira-image-counter"></div>
+            <div class="kira-image-title"></div>
+            <div class="kira-image-operation">
+                <div class="kira-image-operation-button" id="kira-image-operation-button-zoom">
+                    <i class="kirafont icon-zoom-in"></i>
+                </div>
+                <div class="kira-image-operation-button" id="kira-image-operation-button-close">
+                    <i class="kirafont icon-close"></i>
+                </div>
             </div>
-    
-            
         </div>
-        <div class="kira-hr"></div>
-    
+        <div class="kira-image-container">
+            <div class="kira-image-prev-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-left"></i>
+                </div>
+            </div>
+            <div class="kira-image-list">
+                <div class="kira-image-prev">
+                    <img />
+                </div>
+                <div class="kira-image-now">
+                    <img />
+                </div>
+                <div class="kira-image-next">
+                    <img />
+                </div>
+            </div>
+            <div class="kira-image-next-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
+<link rel="stylesheet" href="/css/kira-code-copy.css">
+
+	
+<script src="/js/kira-code-copy.js"></script>
+
+
+<div class="kira-post">
+	<article>
+		
+		<div class="kira-post-cover">
+			<img
+				data-src="https://raw.githubusercontent.com/gepsieh/my_pic/master/hexoblog.jpg"
+				data-sizes="auto"
+				alt="在 hexo 博客中添加 live2d 参考资料"
+				class="lazyload kira-post-cover-image disabled-kira-image"
+			/>
+			<h1>在 hexo 博客中添加 live2d 参考资料</h1>
+		</div>
+		
+		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
+			<a><i class="kirafont icon-calendar-fill"></i>2024年02月10日</a>
+			<a><i class="kirafont icon-edit-fill"></i>167 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 1 分钟</a>
+		</div>
+		<p>由于网上的教程已经十分详细，我只打算在这篇文章中记录一些我参考的文章以及相关资源的链接。</p>
+<h2><span id="步骤详解">步骤详解</span></h2><p>内容非常详细的 live2d 添加教程<br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/c10udlnk/p/14727173.html">https://www.cnblogs.com/c10udlnk/p/14727173.html</a></p>
+<h2><span id="相关-api">相关 API</span></h2><ul>
+<li><p>live2d-widget<br><a target="_blank" rel="noopener" href="https://github.com/stevenjoezhang/live2d-widget">https://github.com/stevenjoezhang/live2d-widget</a></p>
+</li>
+<li><p>live2d_api<br><a target="_blank" rel="noopener" href="https://github.com/fghrsh/live2d_api">https://github.com/fghrsh/live2d_api</a></p>
+</li>
+</ul>
+<h2><span id="获取自定义模型">获取自定义模型</span></h2><ul>
+<li>Live2D Viewer Ex</li>
+<li>Lpk unpacker <a target="_blank" rel="noopener" href="https://github.com/ihopenot/LpkUnpacker">https://github.com/ihopenot/LpkUnpacker</a></li>
+</ul>
+<p>在获取相关贴图、模型以后，要自行修改相关的文件，保证 live2d-widget 能够正常将其识别。</p>
+<h2><span id="小问题">小问题</span></h2><ul>
+<li>默认modelId为1会导致在模型只有一个的情况下无法正确加载模型<br><a target="_blank" rel="noopener" href="https://github.com/stevenjoezhang/live2d-widget/issues/135">https://github.com/stevenjoezhang/live2d-widget/issues/135</a></li>
+</ul>
+
+	</article>
+
+	 
+    <div class="kira-post-copyright">
+        <strong>本文作者：</strong>Migita Suzu<br>
+        <strong>本文链接：</strong><a href="http://gepsieh.github.io/2024/02/10/%E5%9C%A8%20hexo%20%E5%8D%9A%E5%AE%A2%E4%B8%AD%E6%B7%BB%E5%8A%A0%20live2d%20%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99/" title="http:&#x2F;&#x2F;gepsieh.github.io&#x2F;2024&#x2F;02&#x2F;10&#x2F;在 hexo 博客中添加 live2d 参考资料&#x2F;" target="_blank" rel="noopener">http:&#x2F;&#x2F;gepsieh.github.io&#x2F;2024&#x2F;02&#x2F;10&#x2F;在 hexo 博客中添加 live2d 参考资料&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+  
+	<div class="kira-post-nav">
+		<nav class="post-nav">
+			      
+			<!-- 先找到与当前文字相同的目录 -->
+			      
+			<!-- 在找到当前文章所在的 index -->
+			    
+			<!-- 上一篇文章 -->
+			<div class="old">
+				<span>上一章</span>
+				<a href="/2024/01/23/%E6%88%91%E7%9A%84%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E6%96%B9%E6%A1%88/"> 我的个人博客搭建方案</a>
+			</div>
+			          
+		</nav>
+	</div>
+	
+	<div class="kira-post-meta kira-rainbow">
+		
+			<a class="kirafont icon-container-fill -link" href="/categories/%E7%BC%96%E7%A8%8B/">编程</a>
+		
+		
+	</div>
+	
+	<div class="kira-post-footer">
+		
+
+		
+	<div class="giscus"></div>
+  
+    <script src="https://giscus.app/client.js"
+      data-repo="gepsieh/gepsieh.github.io"
+      data-repo-id="R_kgDOJywRRQ"
+      data-category="General"
+      data-category-id="DIC_kwDOJywRRc4CcoDp"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async  
+    ></script>
+  
+
+	</div>
+	
 </div>
 
 				</div>
