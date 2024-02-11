@@ -127,13 +127,15 @@ function loadWidget(config) {
     }
 
     (function initModel() {
-        let modelId = localStorage.getItem("modelId"),
-            modelTexturesId = localStorage.getItem("modelTexturesId");
-        if (modelId === null) {
-            // 首次访问加载 指定模型 的 指定材质
-            modelId = 0; // 模型 ID
-            modelTexturesId = 0; // 材质 ID
-        }
+        // let modelId = localStorage.getItem("modelId"),
+        //     modelTexturesId = localStorage.getItem("modelTexturesId");
+        // if (modelId === null) {
+        //     // 首次访问加载 指定模型 的 指定材质
+        //     modelId = 0; // 模型 ID
+        //     modelTexturesId = 0; // 材质 ID
+        // }
+        modelId = 0; // 模型 ID
+        modelTexturesId = 0; // 材质 ID
         model.loadModel(modelId, modelTexturesId);
         fetch(config.waifuPath)
             .then(response => response.json())
