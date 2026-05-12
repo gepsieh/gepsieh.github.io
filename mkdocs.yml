@@ -18,7 +18,7 @@ extra_javascript:
 - javascripts/extra.js
 plugins:
 - search:
-    lang: zh
+    enable: false
 - git-revision-date-localized:
     type: datetime
     timezone: Asia/Shanghai
