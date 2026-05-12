@@ -1,4 +1,6 @@
 site_name: 原神资料
+site_url: https://gepsieh.github.io
+use_directory_urls: false
 nav:
 - 公式收集:
   - 公式收集\常规伤害公式.md
