@@ -1,5 +1,7 @@
 site_name: 原神资料
-nav: []
+nav:
+- 公式收集:
+  - 公式收集/常规伤害公式.md
 theme:
   name: readthedocs
   locale: zh_CN
