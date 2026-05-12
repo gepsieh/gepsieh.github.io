@@ -1,5 +1,7 @@
 site_name: 原神资料
 site_url: https://gepsieh.github.io
+site_description: 一些收集到的原神相关内容
+site_author: suzu
 use_directory_urls: false
 nav:
 - 公式收集:
