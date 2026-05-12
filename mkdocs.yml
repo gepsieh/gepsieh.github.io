@@ -16,9 +16,12 @@ theme:
   locale: zh_CN
 extra_javascript:
 - javascripts/extra.js
+hooks:
+- hooks/patch_lunr_zh.py
 plugins:
 - search:
-    enable: false
+    lang: zh
+    min_search_length: 1
 - git-revision-date-localized:
     type: datetime
     timezone: Asia/Shanghai
