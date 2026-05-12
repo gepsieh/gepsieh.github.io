@@ -1,0 +1,14 @@
+site_name: 原神资料
+nav: []
+theme:
+  name: readthedocs
+  locale: zh_CN
+extra_javascript:
+- javascripts/extra.js
+plugins:
+- search
+- git-revision-date-localized:
+    type: datetime
+    timezone: Asia/Shanghai
+    locale: zh
+    fallback_to_build_date: true

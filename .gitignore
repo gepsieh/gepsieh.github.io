@@ -1,0 +1,8 @@
+app.py
+editor.html
+list.html
+templates/
+drafts/
+venv/
+__pycache__/
+*.pyc
