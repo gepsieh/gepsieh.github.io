@@ -11,6 +11,10 @@ nav:
 - 杂项:
   - 杂项/参量质变仪.md
   - 杂项/抽卡概率.md
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
 theme:
   name: readthedocs
   lang: zh
