@@ -12,8 +12,8 @@ nav:
   - 杂项/参量质变仪.md
   - 杂项/抽卡概率.md
 theme:
-  name: readthedocs
-  locale: zh_CN
+  name: material
+  lang: zh
 extra_javascript:
 - javascripts/extra.js
 hooks:
