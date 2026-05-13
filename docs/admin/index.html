@@ -581,10 +581,25 @@ function showTab(tab) {
 
 function updatePreview() {
   const title = document.getElementById('edit-title').value.trim();
-  const content = document.getElementById('edit-content').value;
+  let content = document.getElementById('edit-content').value;
+
+  // 保护 $$...$$ 数学块不被 marked 拆散
+  var mathBlocks = [];
+  content = content.replace(/\$\$([\s\S]*?)\$\$/g, function(m) {
+    mathBlocks.push(m);
+    return '\x00MATH' + (mathBlocks.length - 1) + '\x00';
+  });
+
   const md = (title ? '# ' + title + '\n\n' : '') + content;
+  var html = marked.parse(md);
+
+  // 还原数学块
+  html = html.replace(/\x00MATH(\d+)\x00/g, function(_, n) {
+    return mathBlocks[parseInt(n)];
+  });
+
   var preview = document.getElementById('live-preview');
-  preview.innerHTML = marked.parse(md);
+  preview.innerHTML = html;
   if (window.MathJax && MathJax.typesetPromise) {
     MathJax.typesetPromise([preview]).catch(function(){});
   }
