@@ -130,7 +130,7 @@
       <span style="color:#888;">已登录：<strong id="user-name"></strong></span>
       <div>
         <button class="btn" id="btn-list" onclick="goToList()">📋 文章列表</button>
-        <button class="btn" onclick="logout()">❌ 退出</button>
+        <button class="btn" id="btn-logout" onclick="logout()">❌ 退出</button>
       </div>
     </div>
     <div class="status" id="status"></div>
@@ -356,6 +356,7 @@ function showTab(tab) {
   document.getElementById('tab-list').classList.toggle('hidden', tab !== 'list');
   document.getElementById('tab-edit').classList.toggle('hidden', tab !== 'edit');
   document.getElementById('btn-list').style.display = tab === 'edit' ? '' : 'none';
+  document.getElementById('btn-logout').style.display = tab === 'list' ? '' : 'none';
   if (tab === 'list') { loadArticles(); setStatus(''); }
 }
 
