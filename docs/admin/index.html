@@ -472,7 +472,7 @@ document.getElementById('edit-content').addEventListener('paste', async function
       var filename = 'img-' + Date.now().toString(36) + '.' + ext;
       var imgPath = DOCS_PATH + '/images/' + filename;
 
-      await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
+      var result = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
         method: 'PUT',
         body: JSON.stringify({
           message: '上传图片 ' + filename,
@@ -481,7 +481,8 @@ document.getElementById('edit-content').addEventListener('paste', async function
         })
       });
 
-      var mdImg = '![' + filename + '](/images/' + filename + ')';
+      var rawUrl = result.content.download_url;
+      var mdImg = '![' + filename + '](' + rawUrl + ')';
       ta.setRangeText('\n' + mdImg + '\n', start, start, 'end');
       updatePreview();
       setStatus('图片已上传', 'success');
