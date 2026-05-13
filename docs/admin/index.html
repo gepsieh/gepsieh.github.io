@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>原神资料站 · 在线编辑</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .panel {
+      max-width: 900px;
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; color: #2c3e50; }
+    h2 { font-size: 1.2rem; margin: 1.5rem 0 0.5rem; color: #555; }
+    .field { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 600; color: #444; }
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #dcdfe6;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    textarea {
+      min-height: 300px;
+      resize: vertical;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .toolbar button, .btn {
+      background: #f0f2f5;
+      border: 1px solid #d0d5dd;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #333;
+      transition: 0.15s;
+    }
+    .toolbar button:hover, .btn:hover { background: #e6e9ef; }
+    .btn-primary {
+      background: #409eff;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+    .btn-primary:hover { background: #337ecc; }
+    .btn-danger { background: #f56c6c; color: white; border-color: #f56c6c; }
+    .btn-danger:hover { background: #e85b5b; }
+    .inline-group {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 0.8rem;
+    }
+    .editor-preview-wrapper {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      height: 60vh;
+      min-height: 350px;
+    }
+    .editor-col, .preview-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .editor-col textarea {
+      flex: 1;
+      resize: none;
+    }
+    .preview-col {
+      border: 1px solid #dcdfe6;
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      background: #fafbfc;
+      overflow-y: auto;
+    }
+    .markdown-body { font-size: 0.95rem; line-height: 1.7; color: #333; }
+    .markdown-body h1, .markdown-body h2 { margin-top: 1em; }
+    .markdown-body img { max-width: 100%; }
+    .article-list { max-height: 250px; overflow-y: auto; margin: 0.5rem 0; }
+    .article-list a {
+      display: block;
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #409eff;
+      cursor: pointer;
+    }
+    .article-list a:hover { background: #f0f6ff; }
+    .category-title {
+      font-weight: 600;
+      color: #555;
+      padding: 0.5rem 0.8rem 0.2rem;
+      font-size: 0.95rem;
+    }
+    .status { padding: 0.5rem; margin: 0.5rem 0; border-radius: 6px; font-size: 0.9rem; display: none; }
+    .status.info { background: #e6f7ff; color: #1890ff; display: block; }
+    .status.error { background: #fff2f0; color: #ff4d4f; display: block; }
+    .status.success { background: #f6ffed; color: #52c41a; display: block; }
+    .hidden { display: none !important; }
+    .tab-bar { display: flex; gap: 8px; margin-bottom: 1rem; border-bottom: 2px solid #eee; }
+    .tab-bar button {
+      padding: 8px 16px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #888;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+    }
+    .tab-bar button.active { color: #409eff; border-bottom-color: #409eff; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<div class="panel" id="app">
+
+  <!-- Login state -->
+  <div id="login-view">
+    <h1>📝 原神资料站 · 在线编辑</h1>
+    <p style="color:#888;margin-bottom:1rem;">
+      通过 GitHub PR 直接编辑内容，无需本地服务器。
+    </p>
+    <div class="status info">请先登录 GitHub 账号</div>
+    <button class="btn-primary" onclick="login()">🔐 使用 GitHub 登录</button>
+    <p style="margin-top:1rem;font-size:0.85rem;color:#999;">
+      首次使用需要先在 GitHub 创建 OAuth App（<a href="https://github.com/settings/developers" target="_blank">在这里</a>），
+      将 Client ID 填入页面底部配置。
+    </p>
+  </div>
+
+  <!-- Editor state -->
+  <div id="editor-view" class="hidden">
+    <h1>📝 原神资料站 · 在线编辑</h1>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <span style="color:#888;">已登录：<strong id="user-name"></strong></span>
+      <div>
+        <button class="btn" onclick="showTab('list')" id="tab-list-btn">📋 文章列表</button>
+        <button class="btn" onclick="showTab('edit')" id="tab-edit-btn">✏️ 编辑</button>
+        <button class="btn" onclick="logout()">退出</button>
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+
+    <!-- Article list tab -->
+    <div id="tab-list">
+      <div class="article-list" id="article-list">加载中...</div>
+      <button class="btn-primary" onclick="newArticle()">➕ 新建文章</button>
+    </div>
+
+    <!-- Edit tab -->
+    <div id="tab-edit" class="hidden">
+      <form id="edit-form">
+        <input type="hidden" id="edit-path" value="">
+        <input type="hidden" id="edit-sha" value="">
+        <div class="field">
+          <label>📌 标题</label>
+          <input type="text" id="edit-title" placeholder="起个标题吧" required>
+        </div>
+        <div class="field">
+          <label>📂 分类</label>
+          <div style="display:flex;gap:8px;">
+            <select id="edit-category"></select>
+            <button type="button" class="btn" onclick="addCategory()">➕ 新建分类</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>📄 正文</label>
+          <div class="toolbar">
+            <button type="button" data-action="bold">加粗</button>
+            <button type="button" data-action="italic">斜体</button>
+            <button type="button" data-action="heading">标题</button>
+            <button type="button" data-action="quote">引用</button>
+            <button type="button" data-action="ul">无序列表</button>
+            <button type="button" data-action="ol">有序列表</button>
+            <button type="button" data-action="link">链接</button>
+          </div>
+          <div class="editor-preview-wrapper">
+            <div class="editor-col">
+              <textarea id="edit-content" placeholder="在这里写 Markdown 内容..."></textarea>
+            </div>
+            <div class="preview-col">
+              <div id="live-preview" class="markdown-body"></div>
+            </div>
+          </div>
+        </div>
+        <div class="inline-group">
+          <button type="button" class="btn-primary" onclick="saveArticle()">💾 提交 PR</button>
+          <button type="button" class="btn" onclick="discardEdit()">取消</button>
+          <button type="button" class="btn btn-danger hidden" id="delete-btn" onclick="deleteArticle()">🗑️ 删除</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Config section -->
+  <details id="config-section" style="margin-top:1.5rem;">
+    <summary style="cursor:pointer;color:#999;font-size:0.85rem;">⚙️ OAuth 配置</summary>
+    <div style="margin-top:0.5rem;">
+      <label style="font-size:0.85rem;">GitHub OAuth Client ID</label>
+      <input type="text" id="config-client-id" placeholder="填入你的 GitHub OAuth App Client ID" style="width:100%;">
+      <button type="button" class="btn" onclick="saveConfig()" style="margin-top:0.3rem;">保存配置</button>
+    </div>
+  </details>
+
+</div>
+
+<script>
+// ====== Configuration ======
+const GITHUB_CLIENT_ID = localStorage.getItem('gh_client_id') || '';
+const REDIRECT_URI = 'https://gepsieh.github.io/admin/index.html';
+const REPO_OWNER = 'gepsieh';
+const REPO_NAME = 'gepsieh.github.io';
+const BASE_BRANCH = 'main';
+const DOCS_PATH = 'docs';
+
+document.getElementById('config-client-id').value = GITHUB_CLIENT_ID;
+
+function saveConfig() {
+  const id = document.getElementById('config-client-id').value.trim();
+  localStorage.setItem('gh_client_id', id);
+  location.reload();
+}
+
+// ====== Auth ======
+function getToken() {
+  return localStorage.getItem('gh_token');
+}
+
+function setToken(t) {
+  localStorage.setItem('gh_token', t);
+}
+
+function login() {
+  const cid = GITHUB_CLIENT_ID || document.getElementById('config-client-id').value.trim();
+  if (!cid) { alert('请先填入 GitHub OAuth App 的 Client ID'); return; }
+  localStorage.setItem('gh_client_id', cid);
+  const url = 'https://github.com/login/oauth/authorize?' + new URLSearchParams({
+    client_id: cid,
+    redirect_uri: REDIRECT_URI,
+    scope: 'public_repo',
+    response_type: 'token',
+  });
+  location.href = url;
+}
+
+function logout() {
+  localStorage.removeItem('gh_token');
+  localStorage.removeItem('gh_user');
+  location.hash = '';
+  showLoginView();
+}
+
+function showLoginView() {
+  document.getElementById('login-view').classList.remove('hidden');
+  document.getElementById('editor-view').classList.add('hidden');
+}
+
+function showEditorView() {
+  document.getElementById('login-view').classList.add('hidden');
+  document.getElementById('editor-view').classList.remove('hidden');
+}
+
+// ====== API ======
+async function api(path, opts = {}) {
+  const token = getToken();
+  if (!token) { showLoginView(); throw new Error('未登录'); }
+  const res = await fetch('https://api.github.com' + path, {
+    ...opts,
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(opts.headers || {}),
+    },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+async function getUser() {
+  try {
+    const u = await api('/user');
+    document.getElementById('user-name').textContent = u.login;
+    localStorage.setItem('gh_user', u.login);
+  } catch { logout(); }
+}
+
+// ====== Article List ======
+async function loadArticles() {
+  const list = document.getElementById('article-list');
+  list.textContent = '加载中...';
+  try {
+    const tree = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/${BASE_BRANCH}?recursive=1`);
+    const articles = [];
+    for (const item of tree.tree) {
+      if (!item.path.startsWith(DOCS_PATH + '/')) continue;
+      const rel = item.path.substring(DOCS_PATH.length + 1);
+      if (!rel.endsWith('.md') || rel === 'index.md') continue;
+      if (rel.includes('/images/')) continue;
+      const parts = rel.split('/');
+      const cat = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+      const title = parts[parts.length - 1].replace('.md', '');
+      articles.push({ title, category: cat, path: rel });
+    }
+    articles.sort((a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title));
+    if (!articles.length) { list.innerHTML = '<p style="color:#999;">暂无文章</p>'; return; }
+
+    let html = '', currentCat = '';
+    for (const a of articles) {
+      if (a.category !== currentCat) {
+        if (currentCat) html += '</div>';
+        currentCat = a.category;
+        html += `<div class="category-title">${currentCat || '根目录'}</div><div>`;
+      }
+      html += `<a onclick="editArticle('${encodeURIComponent(a.path)}')" title="${a.path}">${a.title}</a>`;
+    }
+    html += '</div>';
+    list.innerHTML = html;
+  } catch (e) {
+    list.innerHTML = `<p style="color:#f56c6c;">加载失败：${e.message}</p>`;
+  }
+}
+
+// ====== Category Loading ======
+async function loadCategories() {
+  const sel = document.getElementById('edit-category');
+  sel.innerHTML = '';
+  try {
+    const tree = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/${BASE_BRANCH}?recursive=1`);
+    const cats = new Set();
+    for (const item of tree.tree) {
+      if (!item.path.startsWith(DOCS_PATH + '/')) continue;
+      const rel = item.path.substring(DOCS_PATH.length + 1);
+      if (!rel.endsWith('.md')) continue;
+      if (rel === 'index.md') continue;
+      const parts = rel.split('/');
+      if (parts.length > 1) cats.add(parts[0]);
+    }
+    for (const c of [...cats].sort()) {
+      sel.add(new Option(c, c));
+    }
+    if (!cats.size) sel.add(new Option('(暂无分类)', ''));
+  } catch (e) {
+    sel.add(new Option('加载失败', ''));
+  }
+}
+
+function addCategory() {
+  const name = prompt('请输入新分类名称：');
+  if (!name) return;
+  const sel = document.getElementById('edit-category');
+  for (const o of sel.options) { if (o.value === name) { sel.value = name; return; } }
+  sel.add(new Option(name, name));
+  sel.value = name;
+}
+
+// ====== Edit Article ======
+async function editArticle(path) {
+  setStatus('');
+  const decoded = decodeURIComponent(path);
+  document.getElementById('edit-path').value = decoded;
+  document.getElementById('edit-sha').value = '';
+  document.getElementById('delete-btn').classList.remove('hidden');
+
+  showTab('edit');
+  await loadCategories();
+
+  try {
+    const file = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DOCS_PATH}/${decoded}?ref=${BASE_BRANCH}`);
+    const content = atob(file.content.replace(/\n/g, ''));
+    document.getElementById('edit-sha').value = file.sha;
+
+    const parts = decoded.split('/');
+    let title = parts[parts.length - 1].replace('.md', '');
+    let bodyContent = content;
+
+    const firstLineEnd = bodyContent.indexOf('\n');
+    const firstLine = bodyContent.substring(0, firstLineEnd < 0 ? bodyContent.length : firstLineEnd).trim();
+    const titleMatch = firstLine.match(/^# +(.+)/);
+    if (titleMatch) {
+      title = titleMatch[1];
+      bodyContent = bodyContent.substring(firstLineEnd < 0 ? bodyContent.length : firstLineEnd + 1).trimStart();
+    }
+    document.getElementById('edit-title').value = title;
+    document.getElementById('edit-content').value = bodyContent;
+
+    if (parts.length > 1) {
+      const cat = parts.slice(0, -1).join('/');
+      const sel = document.getElementById('edit-category');
+      for (const o of sel.options) { if (o.value === cat) { sel.value = cat; break; } }
+    }
+    updatePreview();
+  } catch (e) {
+    setStatus('加载文章失败：' + e.message, 'error');
+  }
+}
+
+function newArticle() {
+  document.getElementById('edit-path').value = '';
+  document.getElementById('edit-sha').value = '';
+  document.getElementById('edit-title').value = '';
+  document.getElementById('edit-content').value = '';
+  document.getElementById('delete-btn').classList.add('hidden');
+  showTab('edit');
+  loadCategories();
+}
+
+function discardEdit() {
+  showTab('list');
+  loadArticles();
+}
+
+// ====== Save Article (PR workflow) ======
+async function saveArticle() {
+  const title = document.getElementById('edit-title').value.trim();
+  const category = document.getElementById('edit-category').value;
+  const content = document.getElementById('edit-content').value;
+  const editPath = document.getElementById('edit-path').value;
+  if (!title) { setStatus('请输入标题', 'error'); return; }
+
+  const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  const mdContent = '# ' + title + '\n\n' + normalized + '\n';
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(mdContent);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  const b64 = btoa(binary);
+
+  let filePath;
+  if (editPath) {
+    const parts = editPath.split('/');
+    parts[parts.length - 1] = title + '.md';
+    if (category && parts.length > 1) {
+      parts[parts.length - 2] = category;
+    } else if (category && parts.length === 1) {
+      parts.unshift(category);
+    }
+    filePath = parts.join('/');
+  } else {
+    filePath = category ? category + '/' + title + '.md' : title + '.md';
+  }
+  const fullPath = DOCS_PATH + '/' + filePath;
+
+  const suffix = Date.now().toString(36);
+  const branchName = 'edit/' + filePath.replace(/[^a-zA-Z0-9_\-/]/g, '-').replace(/\/+$/, '') + '-' + suffix;
+
+  setStatus('正在创建分支并提交 PR...', 'info');
+  try {
+    // 1. Get main SHA
+    const mainRef = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/git/refs/heads/${BASE_BRANCH}`);
+    const baseSha = mainRef.object.sha;
+
+    // 2. Create branch
+    await api(`/repos/${REPO_OWNER}/${REPO_NAME}/git/refs`, {
+      method: 'POST',
+      body: JSON.stringify({ ref: 'refs/heads/' + branchName, sha: baseSha }),
+    });
+
+    // 3. Commit file
+    const putBody = {
+      message: editPath ? '更新 ' + title : '新建 ' + title,
+      content: b64,
+      branch: branchName,
+    };
+    const existingSha = document.getElementById('edit-sha').value;
+    if (existingSha && editPath) {
+      putBody.sha = existingSha;
+    }
+    await api(`/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fullPath}`, {
+      method: 'PUT',
+      body: JSON.stringify(putBody),
+    });
+
+    // 4. Create PR
+    const pr = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/pulls`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title: editPath ? '更新：' + title : '新建：' + title,
+        head: branchName,
+        base: BASE_BRANCH,
+        body: '通过在线编辑器提交。',
+      }),
+    });
+
+    setStatus(`PR 已创建！<a href="${pr.html_url}" target="_blank">查看 PR #${pr.number}</a>`, 'success');
+    document.getElementById('edit-path').value = '';
+    document.getElementById('edit-sha').value = '';
+    setTimeout(() => { showTab('list'); loadArticles(); }, 2000);
+  } catch (e) {
+    setStatus('提交失败：' + e.message, 'error');
+  }
+}
+
+// ====== Delete Article (PR workflow) ======
+async function deleteArticle() {
+  const editPath = document.getElementById('edit-path').value;
+  const sha = document.getElementById('edit-sha').value;
+  const title = document.getElementById('edit-title').value;
+  if (!editPath || !sha) { setStatus('缺少文件信息', 'error'); return; }
+  if (!confirm(`确定要删除「${title}」吗？此操作将通过 PR 提交。`)) return;
+
+  const fullPath = DOCS_PATH + '/' + editPath;
+  const branchName = 'delete/' + editPath.replace(/[^a-zA-Z0-9_\-/]/g, '-') + '-' + Date.now().toString(36);
+
+  setStatus('正在创建删除 PR...', 'info');
+  try {
+    const mainRef = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/git/refs/heads/${BASE_BRANCH}`);
+    await api(`/repos/${REPO_OWNER}/${REPO_NAME}/git/refs`, {
+      method: 'POST',
+      body: JSON.stringify({ ref: 'refs/heads/' + branchName, sha: mainRef.object.sha }),
+    });
+    await api(`/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fullPath}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ message: '删除 ' + title, sha: sha, branch: branchName }),
+    });
+    const pr = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/pulls`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title: '删除：' + title,
+        head: branchName,
+        base: BASE_BRANCH,
+        body: '通过在线编辑器提交。',
+      }),
+    });
+    setStatus(`删除 PR 已创建！<a href="${pr.html_url}" target="_blank">查看 PR #${pr.number}</a>`, 'success');
+    document.getElementById('edit-path').value = '';
+    document.getElementById('edit-sha').value = '';
+    setTimeout(() => { showTab('list'); loadArticles(); }, 2000);
+  } catch (e) {
+    setStatus('删除失败：' + e.message, 'error');
+  }
+}
+
+// ====== UI Helpers ======
+function setStatus(msg, type) {
+  const s = document.getElementById('status');
+  s.className = 'status';
+  if (type) s.classList.add(type);
+  s.innerHTML = msg;
+  s.style.display = msg ? 'block' : 'none';
+}
+
+function showTab(tab) {
+  document.getElementById('tab-list').classList.toggle('hidden', tab !== 'list');
+  document.getElementById('tab-edit').classList.toggle('hidden', tab !== 'edit');
+  document.getElementById('tab-list-btn').classList.toggle('active', tab === 'list');
+  document.getElementById('tab-edit-btn').classList.toggle('active', tab === 'edit');
+  if (tab === 'list') { loadArticles(); setStatus(''); }
+}
+
+function updatePreview() {
+  const title = document.getElementById('edit-title').value.trim();
+  const content = document.getElementById('edit-content').value;
+  const md = (title ? '# ' + title + '\n\n' : '') + content;
+  document.getElementById('live-preview').innerHTML = marked.parse(md);
+}
+
+// ====== Markdown Toolbar ======
+function insertMarkdown(textarea, syntax, placeholder) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selected = textarea.value.substring(start, end) || placeholder;
+  const newText = syntax.replace('$1', selected);
+  textarea.setRangeText(newText, start, end, 'end');
+  textarea.focus();
+}
+
+document.querySelector('.toolbar')?.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const ta = document.getElementById('edit-content');
+  const actions = {
+    bold: ['**$1**', '粗体文字'],
+    italic: ['*$1*', '斜体文字'],
+    heading: ['\n## $1\n', '二级标题'],
+    quote: ['> $1', '引用内容'],
+    ul: ['- $1', '列表项'],
+    ol: ['1. $1', '列表项'],
+    link: ['[$1](https://)', '链接文字'],
+  };
+  const a = actions[btn.dataset.action];
+  if (a) insertMarkdown(ta, a[0], a[1]);
+});
+
+document.getElementById('edit-content')?.addEventListener('input', updatePreview);
+document.getElementById('edit-content')?.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = e.target;
+    ta.setRangeText('  ', ta.selectionStart, ta.selectionStart, 'end');
+  }
+});
+
+// ====== Init ======
+function init() {
+  // Check for OAuth redirect token
+  const hash = location.hash.substring(1);
+  if (hash) {
+    const params = new URLSearchParams(hash);
+    const token = params.get('access_token');
+    if (token) {
+      setToken(token);
+      location.hash = '';
+      showEditorView();
+      loadArticles();
+      getUser();
+      return;
+    }
+  }
+
+  // Check for stored token
+  const token = getToken();
+  if (token) {
+    showEditorView();
+    loadArticles();
+    getUser();
+  } else {
+    showLoginView();
+  }
+}
+
+init();
+</script>
+</body>
+</html>

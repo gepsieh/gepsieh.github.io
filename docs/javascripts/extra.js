@@ -1,9 +1,8 @@
 // 浮动编辑按钮
 document.addEventListener('DOMContentLoaded', function() {
   var btn = document.createElement('a');
-  btn.href = 'http://127.0.0.1:5000';
-  btn.target = '_blank';
-  btn.title = '打开编辑器';
+  btn.href = '/admin/index.html';
+  btn.title = '在线编辑';
   btn.style.position = 'fixed';
   btn.style.bottom = '20px';
   btn.style.right = '20px';

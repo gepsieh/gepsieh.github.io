@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>原神资料站 · 编辑</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .panel {
+      max-width: 900px;
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 1.5rem; color: #2c3e50; }
+    .field { margin-bottom: 1.2rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 600; color: #444; }
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid #dcdfe6;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    textarea {
+      min-height: 300px;
+      resize: vertical;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .toolbar button {
+      background: #f0f2f5;
+      border: 1px solid #d0d5dd;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #333;
+      transition: 0.15s;
+    }
+    .toolbar button:hover {
+      background: #e6e9ef;
+    }
+    .inline-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 0.8rem;
+    }
+    .primary-btn {
+      background: #409eff;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .primary-btn:hover { background: #337ecc; }
+    /* 编辑 + 预览左右分栏 */
+    .editor-preview-wrapper {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        height: 65vh;  /* 左右区域的总高度，可根据你的屏幕调整，比如 60vh、70vh */
+        min-height: 400px; /* 防止窗口太矮时内容挤压 */
+    }
+    .editor-preview-wrapper .editor-col,
+    .editor-preview-wrapper .preview-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;  /* 重要：允许 flex 子元素缩小到小于内容高度 */
+    }
+    .editor-col textarea {
+        flex: 1;
+        width: 100%;
+        resize: none;   /* 不希望用户手动拖拽改变尺寸，破坏布局 */
+        font-family: inherit;
+        font-size: 1rem;
+        padding: 0.7rem;
+        border: 1px solid #dcdfe6;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+    .preview-col {
+        border: 1px solid #dcdfe6;
+        border-radius: 8px;
+        padding: 1.5rem 1.8rem;
+        background: #fafbfc;
+        overflow-y: auto;  /* 预览内容超长时滚动 */
+    }
+    /* 预览时的 markdown 样式 */
+    .markdown-body {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #333;
+    }
+    .markdown-body > :first-child {
+        margin-top: 0;
+    }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+        margin-top: 1.2em;
+    }
+    .markdown-body img { max-width: 100%; }
+    .markdown-body pre {
+        background: #f4f4f4;
+        padding: 1rem;
+        overflow-x: auto;
+        border-radius: 4px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    // 让 marked 识别 $$...$$ 数学块，避免里头的 \\ _ 等被当作 Markdown 解析
+    marked.use({
+      extensions: [{
+        name: 'math',
+        level: 'block',
+        start: function (src) {
+          return src.search(/^[ \t]*\$\$/m);
+        },
+        tokenizer: function (src) {
+          var match = src.match(/^[ \t]*\$\$\n?([\s\S]*?)\n?\$\$/);
+          if (match) {
+            return {
+              type: 'math',
+              raw: match[0],
+              text: match[1],
+            };
+          }
+        },
+        renderer: function (token) {
+          return '<div class="arithmatex">\\[' + token.text + '\\]</div>';
+        }
+      }]
+    });
+
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true,
+      },
+      startup: {
+        typeset: false,
+      },
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div class="panel">
+  <h1>📝 撰写原神资料</h1>
+  <div style="text-align: right; margin-bottom: 0.5rem;">
+  <a href="/edit-list" style="color: #409eff; text-decoration: none; font-size: 0.95rem;">📋 编辑已有文章</a>
+  </div>
+  <form method="POST" enctype="multipart/form-data">
+    <div class="field">
+      <label>📌 标题</label>
+      <input type="text" name="title" placeholder="起个标题吧" required>
+    </div>
+
+    <div class="field">
+      <label>📂 内容分类</label>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+        <select name="category" id="category-select">
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <button type="button" id="add-category-btn" style="white-space: nowrap; padding: 0.5rem 1rem; background: #f0f2f5; border: 1px solid #d0d5dd; border-radius: 6px; cursor: pointer;">➕ 新建分类</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>📄 正文</label>
+      <div class="toolbar" id="md-toolbar">
+        <button type="button" data-action="bold">加粗</button>
+        <button type="button" data-action="italic">斜体</button>
+        <button type="button" data-action="heading">标题</button>
+        <button type="button" data-action="quote">引用</button>
+        <button type="button" data-action="ul">无序列表</button>
+        <button type="button" data-action="ol">有序列表</button>
+        <button type="button" data-action="link">链接</button>
+        <button type="button" data-action="image">图片</button>
+        <button type="button" id="preview-btn">预览</button>
+      </div>
+      <div class="editor-preview-wrapper">
+        <div class="editor-col">
+            <textarea id="content" name="content" placeholder="在这里写 Markdown 内容..."></textarea>
+        </div>
+        <div class="preview-col">
+            <div id="live-preview" class="markdown-body">
+        </div>
+    </div>
+  </div>
+    </div>
+    <div class="inline-group">
+      <label><input type="checkbox" name="publish" checked> 直接发布到网站</label>
+      <button type="submit" class="primary-btn">💾 保存并部署</button>
+      <button type="button" id="delete-btn" class="primary-btn" style="background: #f56c6c; border-color: #f56c6c; display: none;">🗑️ 删除</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const textarea = document.getElementById('content');
+
+  function insertMarkdown(syntax, placeholder = '') {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = textarea.value.substring(start, end) || placeholder;
+    const newText = syntax.replace('$1', selected);
+    textarea.setRangeText(newText, start, end, 'end');
+    textarea.focus();
+  }
+
+  document.getElementById('md-toolbar').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    switch(action) {
+      case 'bold':
+        insertMarkdown('**$1**', '粗体文字');
+        break;
+      case 'italic':
+        insertMarkdown('*$1*', '斜体文字');
+        break;
+      case 'heading':
+        insertMarkdown('\n## $1\n', '二级标题');
+        break;
+      case 'quote':
+        insertMarkdown('> $1', '引用内容');
+        break;
+      case 'ul':
+        insertMarkdown('- $1', '列表项');
+        break;
+      case 'ol':
+        insertMarkdown('1. $1', '列表项');
+        break;
+      case 'link':
+        insertMarkdown('[$1](https://)', '链接文字');
+        break;
+      case 'image':
+        insertMarkdown('![$1](https://)', '图片描述');
+        break;
+    }
+  });
+
+  // 支持 Tab 键插入缩进
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = textarea.selectionStart;
+      textarea.setRangeText('  ', start, start, 'end');
+    }
+  });
+
+  // 粘贴图片自动上传
+  textarea.addEventListener('paste', async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let item of items) {
+        if (item.type.startsWith('image/')) {
+        e.preventDefault();   // 阻止默认粘贴（会贴成 base64，太大）
+
+        const file = item.getAsFile();
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const res = await fetch('/upload_image', {
+            method: 'POST',
+            body: formData
+            });
+            const data = await res.json();
+            if (data.url) {
+            // 插入 Markdown 图片语法
+            const mdImg = `![图片](${data.url})`;
+            const start = textarea.selectionStart;
+            textarea.setRangeText(mdImg, start, start, 'end');
+            textarea.focus();
+            } else {
+            alert('图片上传失败');
+            }
+        } catch (err) {
+            alert('上传出错: ' + err);
+        }
+        break;  // 只处理第一张图片
+        }
+    }
+    });
+
+    const livePreview = document.getElementById('live-preview');
+
+    let mathjaxReady = false;
+    let pendingMarkdown = '';
+
+    function updatePreview() {
+        const titleInput = document.querySelector('input[name="title"]');
+        const title = titleInput ? titleInput.value.trim() : '';
+        const markdown = (title ? '# ' + title + '\n\n' : '') + textarea.value;
+        livePreview.innerHTML = marked.parse(markdown);
+        if (mathjaxReady) {
+            MathJax.typesetClear([livePreview]);
+            MathJax.typesetPromise([livePreview]).catch(function(err) {
+                console.error('MathJax typeset error:', err);
+            });
+        } else {
+            pendingMarkdown = markdown;
+        }
+    }
+
+    // 监听输入事件实时更新
+    textarea.addEventListener('input', updatePreview);
+
+    // 页面加载时也预览一次（如果有初始内容）
+    updatePreview();
+
+    // 等待 MathJax 就绪后，触发一次渲染
+    (function waitMathJax() {
+        if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
+            MathJax.startup.promise.then(function () {
+                mathjaxReady = true;
+                if (pendingMarkdown) {
+                    livePreview.innerHTML = marked.parse(pendingMarkdown);
+                    MathJax.typesetClear([livePreview]);
+                    MathJax.typesetPromise([livePreview]).catch(function (err) {
+                        console.error('MathJax error:', err);
+                    });
+                }
+            });
+        } else {
+            setTimeout(waitMathJax, 100);
+        }
+    })();
+    document.getElementById('add-category-btn').addEventListener('click', async () => {
+        const name = prompt('请输入新分类名称：');
+        if (!name) return;
+        const formData = new FormData();
+        formData.append('name', name);
+        try {
+            const res = await fetch('/create_category', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+            alert(`分类「${data.category}」已创建`);
+            // 动态添加到下拉菜单中
+            const select = document.getElementById('category-select');
+            const option = document.createElement('option');
+            option.value = data.category;
+            option.textContent = data.category;
+            select.appendChild(option);
+            select.value = data.category;  // 自动选中新分类
+            } else {
+            alert('创建失败：' + data.error);
+            }
+        } catch (err) {
+            alert('请求出错：' + err);
+        }
+        });
+
+        // 如果通过 ?edit= 访问，加载文章内容
+    const urlParams = new URLSearchParams(window.location.search);
+    const editPath = urlParams.get('edit');
+    if (editPath) {
+    fetch('/load_article?path=' + encodeURIComponent(editPath))
+        .then(res => res.json())
+        .then(data => {
+        if (data.title) {
+            document.querySelector('input[name="title"]').value = data.title;
+            // 分离标题和正文
+            let bodyContent = data.content;
+            const firstLineEnd = bodyContent.indexOf('\n');
+            const firstLine = bodyContent.substring(0, firstLineEnd).trim();
+            // 如果第一行是 # 标题，就把它填入标题框，并从正文中移除
+            const titleMatch = firstLine.match(/^# +(.+)/);
+            if (titleMatch) {
+            document.querySelector('input[name="title"]').value = titleMatch[1];
+            bodyContent = bodyContent.substring(firstLineEnd + 1).trimStart();
+            // ✅ 确保去掉开头所有空行
+            bodyContent = bodyContent.replace(/^\n+/, '');
+            }
+            // 同时也去掉末尾多余换行（保持清洁）
+            bodyContent = bodyContent.trimEnd();
+            document.querySelector('textarea#content').value = bodyContent;
+            // 自动匹配分类
+            const parts = editPath.split('/');
+            if (parts.length > 1) {
+            const cat = parts[0];
+            const select = document.querySelector('select[name="category"]');
+            for (let opt of select.options) {
+                if (opt.value === cat) {
+                select.value = cat;
+                break;
+                }
+            }
+            }
+            // 添加隐藏字段 edit_path
+            let hidden = document.querySelector('input[name="edit_path"]');
+            if (!hidden) {
+            hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'edit_path';
+            document.querySelector('form').appendChild(hidden);
+            }
+            hidden.value = editPath;
+            // 触发预览更新
+            if (typeof updatePreview === 'function') updatePreview();
+        }
+        });
+        // 显示或隐藏删除按钮（基于编辑模式）
+        const deleteBtn = document.getElementById('delete-btn');
+        if (deleteBtn) {
+            if (editPath) {
+                deleteBtn.style.display = 'inline-block';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
+        }
+        deleteBtn.addEventListener('click', () => {
+        const currentTitle = document.querySelector('input[name="title"]').value;
+        if (!confirm(`确定要删除「${currentTitle}」吗？此操作不可恢复！`)) return;
+        const formData = new FormData();
+        formData.append('path', editPath);   // editPath 来自外层作用域
+        fetch('/delete_article', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(result => {
+            if (result.success) {
+                alert('删除成功！');
+                window.location.href = '/';
+            } else {
+                alert('删除失败：' + result.error);
+            }
+            });
+        });
+    }
+</script>
+</body>
+</html>
