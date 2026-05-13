@@ -1,12 +1,18 @@
 window.MathJax = {
   tex: {
     inlineMath: [['\\(', '\\)']],
-    displayMath: [['\\[', '\\]']],
-    processEscapes: true,
-    processEnvironments: true,
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+  },
+  chtml: {
+    displayAlign: 'left',
+    displayIndent: '0.5em',
+    linebreaks: {
+      automatic: true,
+      width: 'container',
+    },
   },
   options: {
-    ignoreHtmlClass: '.*|',
+    ignoreHtmlClass: '.*',
     processHtmlClass: 'arithmatex',
   },
 };
