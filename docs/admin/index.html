@@ -147,12 +147,18 @@
     <p style="color:#888;margin-bottom:1rem;">
       通过 GitHub PR 直接编辑内容，无需本地服务器。
     </p>
-    <div class="status info">请先登录 GitHub 账号</div>
-    <button class="btn-primary" onclick="login()">🔐 使用 GitHub 登录</button>
-    <p style="margin-top:1rem;font-size:0.85rem;color:#999;">
-      ① 在 GitHub <a href="https://github.com/settings/developers" target="_blank">创建 OAuth App</a><br>
-      ② 将 Callback URL 设为：<br><code id="callback-hint" style="word-break:break-all;"></code><br>
-      ③ 将 Client ID 填入下方配置 → 保存 → 点击登录
+    <div class="field">
+      <label>🔑 GitHub Personal Access Token</label>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="flex:1;">
+        <button class="btn-primary" onclick="doLogin()" style="white-space:nowrap;">登录</button>
+      </div>
+    </div>
+    <div class="status" id="login-status"></div>
+    <p style="margin-top:0.5rem;font-size:0.85rem;color:#999;">
+      ① 打开 <a href="https://github.com/settings/tokens" target="_blank">GitHub Token 设置</a> → Generate new token (classic)<br>
+      ② 勾选 <b>public_repo</b> 权限，生成后粘贴到上方<br>
+      ③ Token 仅保存在你的浏览器本地
     </p>
   </div>
 
@@ -220,34 +226,16 @@
     </div>
   </div>
 
-  <!-- Config section -->
-  <details id="config-section" style="margin-top:1.5rem;">
-    <summary style="cursor:pointer;color:#999;font-size:0.85rem;">⚙️ OAuth 配置</summary>
-    <div style="margin-top:0.5rem;">
-      <label style="font-size:0.85rem;">GitHub OAuth Client ID</label>
-      <input type="text" id="config-client-id" placeholder="填入你的 GitHub OAuth App Client ID" style="width:100%;">
-      <button type="button" class="btn" onclick="saveConfig()" style="margin-top:0.3rem;">保存配置</button>
-    </div>
-  </details>
+
 
 </div>
 
 <script>
 // ====== Configuration ======
-const GITHUB_CLIENT_ID = localStorage.getItem('gh_client_id') || '';
-const REDIRECT_URI = location.origin + location.pathname;
 const REPO_OWNER = 'gepsieh';
 const REPO_NAME = 'gepsieh.github.io';
 const BASE_BRANCH = 'main';
 const DOCS_PATH = 'docs';
-
-document.getElementById('config-client-id').value = GITHUB_CLIENT_ID;
-
-function saveConfig() {
-  const id = document.getElementById('config-client-id').value.trim();
-  localStorage.setItem('gh_client_id', id);
-  location.reload();
-}
 
 // ====== Auth ======
 function getToken() {
@@ -258,23 +246,32 @@ function setToken(t) {
   localStorage.setItem('gh_token', t);
 }
 
-function login() {
-  const cid = GITHUB_CLIENT_ID || document.getElementById('config-client-id').value.trim();
-  if (!cid) { alert('请先填入 GitHub OAuth App 的 Client ID'); return; }
-  localStorage.setItem('gh_client_id', cid);
-  const url = 'https://github.com/login/oauth/authorize?' + new URLSearchParams({
-    client_id: cid,
-    redirect_uri: REDIRECT_URI,
-    scope: 'public_repo',
-    response_type: 'token',
-  });
-  location.href = url;
+async function doLogin() {
+  var token = document.getElementById('token-input').value.trim();
+  var status = document.getElementById('login-status');
+  if (!token) { status.className = 'status error'; status.textContent = '请输入 Token'; return; }
+  status.className = 'status info';
+  status.textContent = '验证中...';
+  try {
+    var res = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var u = await res.json();
+    setToken(token);
+    localStorage.setItem('gh_user', u.login);
+    document.getElementById('user-name').textContent = u.login;
+    showEditorView();
+    loadArticles();
+  } catch (e) {
+    status.className = 'status error';
+    status.textContent = 'Token 无效或网络错误: ' + e.message;
+  }
 }
 
 function logout() {
   localStorage.removeItem('gh_token');
   localStorage.removeItem('gh_user');
-  history.replaceState(null, '', location.pathname + location.search);
   showLoginView();
 }
 
@@ -306,17 +303,6 @@ async function api(path, opts = {}) {
     throw new Error(err.message || `HTTP ${res.status}`);
   }
   return res.json();
-}
-
-async function getUser() {
-  try {
-    const u = await api('/user');
-    document.getElementById('user-name').textContent = u.login;
-    localStorage.setItem('gh_user', u.login);
-  } catch (e) {
-    document.getElementById('user-name').textContent = '(未知)';
-    console.warn('获取用户信息失败:', e.message);
-  }
 }
 
 // ====== Article List ======
@@ -627,57 +613,13 @@ document.getElementById('edit-content')?.addEventListener('keydown', e => {
 
 // ====== Init ======
 function init() {
-  document.getElementById('callback-hint').textContent = REDIRECT_URI;
-  if (!GITHUB_CLIENT_ID) {
-    document.getElementById('config-section').open = true;
-  }
-
-  // --- 诊断面板：在页面上显示 OAuth 状态 ---
-  var dbg = document.getElementById('debug-info');
-  if (!dbg) {
-    dbg = document.createElement('div');
-    dbg.id = 'debug-info';
-    dbg.style.cssText = 'margin-top:1rem;padding:0.5rem;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;font-size:0.8rem;font-family:monospace;white-space:pre-wrap;word-break:break-all;';
-    dbg.textContent = '诊断信息:\n';
-    document.getElementById('app').appendChild(dbg);
-  }
-  dbg.textContent += 'hash: ' + (location.hash || '(空)') + '\n';
-
-  // Check for OAuth redirect token
-  if (location.hash) {
-    var hash = location.hash.substring(1);
-    dbg.textContent += 'hash content: ' + hash + '\n';
-    try {
-      var params = new URLSearchParams(hash);
-      var token = params.get('access_token');
-      dbg.textContent += 'access_token: ' + (token ? token.substring(0,10) + '...' : '(空)') + '\n';
-      if (token) {
-        setToken(token);
-        try { history.replaceState(null, '', location.pathname + location.search); } catch(e) {}
-        dbg.textContent += '状态: 已提取 token，显示编辑器\n';
-        showEditorView();
-        loadArticles();
-        getUser();
-        return;
-      }
-      // 检查是否有 error
-      var err = params.get('error');
-      if (err) dbg.textContent += 'OAuth 错误: ' + err + ' - ' + (params.get('error_description')||'') + '\n';
-    } catch(e) {
-      dbg.textContent += '解析异常: ' + e.message + '\n';
-    }
-  }
-
-  // Check for stored token
-  var savedToken = getToken();
-  dbg.textContent += 'localStorage token: ' + (savedToken ? savedToken.substring(0,10) + '...' : '(空)') + '\n';
-  if (savedToken) {
-    dbg.textContent += '状态: 使用已保存 token，显示编辑器\n';
+  var saved = getToken();
+  if (saved) {
+    var user = localStorage.getItem('gh_user');
+    if (user) document.getElementById('user-name').textContent = user;
     showEditorView();
     loadArticles();
-    getUser();
   } else {
-    dbg.textContent += '状态: 无 token，显示登录界面\n';
     showLoginView();
   }
 }
