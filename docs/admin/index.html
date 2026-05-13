@@ -137,6 +137,14 @@
     .tab-bar button.active { color: #409eff; border-bottom-color: #409eff; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+      chtml: { displayAlign: 'left', displayIndent: '0.5em' },
+      options: { ignoreHtmlClass: '.*', processHtmlClass: 'arithmatex' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 </head>
 <body>
 <div class="panel" id="app">
@@ -194,7 +202,7 @@
           <label>📂 分类</label>
           <div style="display:flex;gap:8px;">
             <select id="edit-category"></select>
-            <button type="button" class="btn" onclick="addCategory()">➕ 新建分类</button>
+            <button type="button" class="btn" onclick="addCategory()" style="white-space:nowrap;">➕ 新建分类</button>
           </div>
         </div>
         <div class="field">
@@ -575,7 +583,11 @@ function updatePreview() {
   const title = document.getElementById('edit-title').value.trim();
   const content = document.getElementById('edit-content').value;
   const md = (title ? '# ' + title + '\n\n' : '') + content;
-  document.getElementById('live-preview').innerHTML = marked.parse(md);
+  var preview = document.getElementById('live-preview');
+  preview.innerHTML = marked.parse(md);
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([preview]).catch(function(){});
+  }
 }
 
 // ====== Markdown Toolbar ======
