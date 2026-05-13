@@ -151,7 +151,8 @@
     <button class="btn-primary" onclick="login()">🔐 使用 GitHub 登录</button>
     <p style="margin-top:1rem;font-size:0.85rem;color:#999;">
       首次使用需要先在 GitHub 创建 OAuth App（<a href="https://github.com/settings/developers" target="_blank">在这里</a>），
-      将 Client ID 填入页面底部配置。
+      将 Client ID 填入下方配置。<br>
+      <strong>Callback URL 需设为当前页面地址</strong>：<code id="callback-hint"></code>
     </p>
   </div>
 
@@ -234,7 +235,7 @@
 <script>
 // ====== Configuration ======
 const GITHUB_CLIENT_ID = localStorage.getItem('gh_client_id') || '';
-const REDIRECT_URI = 'https://gepsieh.github.io/admin/index.html';
+const REDIRECT_URI = location.origin + location.pathname;
 const REPO_OWNER = 'gepsieh';
 const REPO_NAME = 'gepsieh.github.io';
 const BASE_BRANCH = 'main';
@@ -273,7 +274,7 @@ function login() {
 function logout() {
   localStorage.removeItem('gh_token');
   localStorage.removeItem('gh_user');
-  location.hash = '';
+  history.replaceState(null, '', location.pathname + location.search);
   showLoginView();
 }
 
@@ -623,6 +624,7 @@ document.getElementById('edit-content')?.addEventListener('keydown', e => {
 
 // ====== Init ======
 function init() {
+  document.getElementById('callback-hint').textContent = REDIRECT_URI;
   // Check for OAuth redirect token
   const hash = location.hash.substring(1);
   if (hash) {
@@ -630,7 +632,7 @@ function init() {
     const token = params.get('access_token');
     if (token) {
       setToken(token);
-      location.hash = '';
+      history.replaceState(null, '', location.pathname + location.search);
       showEditorView();
       loadArticles();
       getUser();
