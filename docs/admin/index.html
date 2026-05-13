@@ -32,7 +32,7 @@
       font-size: 14px; border-radius: 6px; cursor: pointer; color: #333;
     }
     .toolbar button:hover, .btn:hover { background: #e6e9ef; }
-    .btn-primary { background: #409eff; color: white; border: none; padding: 10px 24px; font-size: 16px; border-radius: 8px; }
+    .btn-primary { background: #409eff; color: white; border: none; padding: 6px 12px; font-size: 14px; border-radius: 6px; }
     .btn-primary:hover { background: #337ecc; }
     .btn-danger { background: #f56c6c; color: white; border-color: #f56c6c; }
     .btn-danger:hover { background: #e85b5b; }
@@ -108,11 +108,11 @@
 </head>
 <body>
 <div class="panel" id="app">
+  <a class="btn-home" href="../" title="返回主页">←</a>
 
   <!-- ====== 登录界面 ====== -->
   <div id="login-view">
     <h1>📝 原神资料站 · 在线编辑</h1>
-    <p style="color:#888;margin-bottom:1rem;">通过 GitHub PR 直接编辑内容，无需本地服务器。</p>
     <div class="field">
       <label>🔑 GitHub Personal Access Token</label>
       <div style="display:flex;gap:8px;">
@@ -121,23 +121,17 @@
       </div>
     </div>
     <div class="status" id="login-status"></div>
-    <p style="margin-top:0.5rem;font-size:0.85rem;color:#999;">
-      ① 打开 <a href="https://github.com/settings/tokens" target="_blank">GitHub Token 设置</a> → Generate new token (classic)<br>
-      ② 勾选 <b>public_repo</b> 权限，生成后粘贴到上方<br>
-      ③ Token 仅保存在你的浏览器本地
-    </p>
   </div>
 
   <!-- ====== 编辑界面 ====== -->
   <div id="editor-view" class="hidden">
-    <a class="btn-home" href="../" title="返回主页">←</a>
     <h1>📝 原神资料站 · 在线编辑</h1>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <span style="color:#888;">已登录：<strong id="user-name"></strong></span>
       <div>
         <button class="btn" onclick="showTab('list')">📋 文章列表</button>
         <button class="btn" onclick="showTab('edit')">✏️ 编辑</button>
-        <button class="btn" onclick="logout()">退出</button>
+        <button class="btn" onclick="logout()">❌ 退出</button>
       </div>
     </div>
     <div class="status" id="status"></div>
@@ -185,8 +179,8 @@
           </div>
         </div>
         <div class="inline-group">
-          <button type="button" class="btn-primary" onclick="saveArticle()">💾 提交 PR</button>
-          <button type="button" class="btn" onclick="discardEdit()">取消</button>
+          <button type="button" class="btn-primary" onclick="saveArticle()">💾 提交 </button>
+          <button type="button" class="btn" onclick="discardEdit()" style="white-space:nowrap;">⬅️ 取消</button>
           <button type="button" class="btn btn-danger hidden" id="delete-btn" onclick="deleteArticle()">🗑️ 删除</button>
         </div>
       </form>
