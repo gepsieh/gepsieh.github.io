@@ -213,6 +213,9 @@ function showEditorView() {
 function logout() {
   localStorage.removeItem('gh_token');
   localStorage.removeItem('gh_user');
+  document.getElementById('token-input').value = '';
+  document.getElementById('login-status').className = 'status';
+  document.getElementById('login-status').textContent = '';
   showLoginView();
 }
 
