@@ -525,6 +525,7 @@ async function saveArticle() {
   var category = document.getElementById('edit-category').value;
   var content = document.getElementById('edit-content').value;
   var editPath = document.getElementById('edit-path').value;
+  var oldSha = document.getElementById('edit-sha').value;
   if (!title) { setStatus('请输入标题', 'error'); return; }
 
   var norm = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
@@ -535,6 +536,7 @@ async function saveArticle() {
   for (var i = 0; i < bts.length; i++) bin += String.fromCharCode(bts[i]);
   var b64 = btoa(bin);
 
+  // 根据标题/分类重建路径
   var filePath;
   if (editPath) {
     var pa = editPath.split('/');
@@ -546,15 +548,26 @@ async function saveArticle() {
     filePath = category ? category + '/' + title + '.md' : title + '.md';
   }
   var fullPath = DOCS_PATH + '/' + filePath;
+  var renamed = editPath && filePath !== editPath;
 
   setStatus('正在保存...', 'info');
   try {
     var putBody = { message: editPath ? '更新 ' + title : '新建 ' + title, content: b64, branch: BASE_BRANCH };
-    var sha = document.getElementById('edit-sha').value;
-    if (sha && editPath) putBody.sha = sha;
+    if (!renamed && oldSha) putBody.sha = oldSha;
     await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + fullPath, {
       method: 'PUT', body: JSON.stringify(putBody)
     });
+
+    // 路径变更时删除旧文件
+    if (renamed) {
+      await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + DOCS_PATH + '/' + editPath, {
+        method: 'DELETE',
+        body: JSON.stringify({ message: '重命名至 ' + title, sha: oldSha, branch: BASE_BRANCH })
+      });
+    }
+
+    // 更新首页「最近更新」
+    await updateIndex(title, filePath);
 
     setStatus('已保存到 main 分支', 'success');
     _initialTitle = title;
@@ -564,6 +577,54 @@ async function saveArticle() {
     setTimeout(function() { showTab('list'); }, 2000);
   } catch (e) {
     setStatus('提交失败：' + e.message, 'error');
+  }
+}
+
+async function updateIndex(title, articlePath, remove) {
+  var indexPath = DOCS_PATH + '/index.md';
+  try {
+    var file = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + indexPath + '?ref=' + BASE_BRANCH);
+    var binaryStr = atob(file.content.replace(/\n/g, ''));
+    var bytes = new Uint8Array(binaryStr.length);
+    for (var i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+    var content = new TextDecoder().decode(bytes);
+
+    var heading = '## 🕒 最近更新';
+
+    var idx = content.indexOf(heading);
+    if (idx === -1) {
+      if (remove) return;
+      content = content.trimEnd() + '\n\n' + heading + '\n\n- [' + title + '](' + articlePath + '.html)\n';
+    } else {
+      var before = content.substring(0, idx + heading.length);
+      var rest = content.substring(idx + heading.length);
+      rest = rest.replace(new RegExp('^- \\[' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\]\\([^)]+\\)\n?', 'm'), '');
+      if (!remove) {
+        var entry = '- [' + title + '](' + articlePath + '.html)\n';
+        var lines = rest.split('\n').filter(function(l) { return l.trim(); });
+        var items = [];
+        for (var j = 0; j < lines.length; j++) {
+          if (lines[j].match(/^- \[/)) items.push(lines[j]);
+        }
+        items.unshift(entry.trim());
+        if (items.length > 10) items = items.slice(0, 10);
+        rest = '\n\n' + items.join('\n') + '\n';
+      }
+      content = before + rest;
+    }
+
+    var enc2 = new TextEncoder();
+    var bts2 = enc2.encode(content);
+    var bin2 = '';
+    for (var k = 0; k < bts2.length; k++) bin2 += String.fromCharCode(bts2[k]);
+    var b642 = btoa(bin2);
+
+    await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + indexPath, {
+      method: 'PUT',
+      body: JSON.stringify({ message: '更新首页最近更新', content: b642, sha: file.sha, branch: BASE_BRANCH })
+    });
+  } catch (e) {
+    // 首页更新失败不影响主流程
   }
 }
 
@@ -582,6 +643,7 @@ async function deleteArticle() {
     await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + fullPath, {
       method: 'DELETE', body: JSON.stringify({ message: '删除 ' + title, sha: sha, branch: BASE_BRANCH })
     });
+    await updateIndex(title, '', true);
     setStatus('「' + title + '」已删除', 'success');
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';
