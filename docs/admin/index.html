@@ -581,22 +581,34 @@ function showTab(tab) {
 
 function updatePreview() {
   const title = document.getElementById('edit-title').value.trim();
-  let content = document.getElementById('edit-content').value;
+  const raw = document.getElementById('edit-content').value;
 
-  // 保护 $$...$$ 数学块不被 marked 拆散
-  var mathBlocks = [];
-  content = content.replace(/\$\$([\s\S]*?)\$\$/g, function(m) {
-    mathBlocks.push(m);
-    return '⟨MATH' + (mathBlocks.length - 1) + '⟩';
-  });
+  // 按 $$...$$ 切分，数学块和正文分开处理
+  var parts = [];
+  var last = 0;
+  var re = /\$\$([\s\S]*?)\$\$/g;
+  var m;
+  while ((m = re.exec(raw)) !== null) {
+    if (m.index > last) {
+      parts.push({ t: 'md', c: raw.substring(last, m.index) });
+    }
+    parts.push({ t: 'math', c: m[0] });
+    last = re.lastIndex;
+  }
+  if (last < raw.length) {
+    parts.push({ t: 'md', c: raw.substring(last) });
+  }
 
-  const md = (title ? '# ' + title + '\n\n' : '') + content;
-  var html = marked.parse(md);
+  var html = '';
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].t === 'md') {
+      html += marked.parse(parts[i].c, { breaks: false });
+    } else {
+      html += parts[i].c;
+    }
+  }
 
-  // 还原数学块
-  html = html.replace(/⟨MATH(\d+)⟩/g, function(_, n) {
-    return mathBlocks[parseInt(n)];
-  });
+  if (title) html = '<h1>' + title + '</h1>\n' + html;
 
   var preview = document.getElementById('live-preview');
   preview.innerHTML = html;
