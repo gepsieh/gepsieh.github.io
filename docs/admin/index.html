@@ -459,6 +459,15 @@ document.getElementById('edit-content').addEventListener('paste', async function
     var ta = this;
     var start = ta.selectionStart;
 
+    var ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/gif' ? 'gif' : 'jpg';
+    var filename = 'img-' + Date.now().toString(36) + '.' + ext;
+
+    // 先用 blob URL 插入预览
+    var blobUrl = URL.createObjectURL(blob);
+    var mdImg = '![' + filename + '](' + blobUrl + ')';
+    ta.setRangeText('\n' + mdImg + '\n', start, start, 'end');
+    updatePreview();
+
     setStatus('正在上传图片...', 'info');
 
     try {
@@ -468,8 +477,6 @@ document.getElementById('edit-content').addEventListener('paste', async function
         reader.readAsDataURL(blob);
       });
 
-      var ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/gif' ? 'gif' : 'jpg';
-      var filename = 'img-' + Date.now().toString(36) + '.' + ext;
       var imgPath = DOCS_PATH + '/images/' + filename;
 
       var result = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
@@ -481,13 +488,15 @@ document.getElementById('edit-content').addEventListener('paste', async function
         })
       });
 
+      // 替换为永久 URL
       var rawUrl = result.content.download_url;
-      var mdImg = '![' + filename + '](' + rawUrl + ')';
-      ta.setRangeText('\n' + mdImg + '\n', start, start, 'end');
+      ta.value = ta.value.replace(blobUrl, rawUrl);
+      URL.revokeObjectURL(blobUrl);
       updatePreview();
       setStatus('图片已上传', 'success');
       setTimeout(function() { setStatus(''); }, 1500);
     } catch (err) {
+      URL.revokeObjectURL(blobUrl);
       setStatus('图片上传失败：' + err.message, 'error');
     }
     break;
