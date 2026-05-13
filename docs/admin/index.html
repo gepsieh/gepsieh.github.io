@@ -387,7 +387,10 @@ async function editArticle(path) {
 
   try {
     const file = await api(`/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DOCS_PATH}/${decoded}?ref=${BASE_BRANCH}`);
-    const content = atob(file.content.replace(/\n/g, ''));
+    const binary = atob(file.content.replace(/\n/g, ''));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const content = new TextDecoder().decode(bytes);
     document.getElementById('edit-sha').value = file.sha;
 
     const parts = decoded.split('/');
