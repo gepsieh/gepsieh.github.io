@@ -446,6 +446,53 @@ document.getElementById('edit-content').addEventListener('keydown', function(e) 
   if (e.key === 'Tab') { e.preventDefault(); var ta = this; ta.setRangeText('  ', ta.selectionStart, ta.selectionStart, 'end'); }
 });
 
+// 粘贴图片
+document.getElementById('edit-content').addEventListener('paste', async function(e) {
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== 0) continue;
+
+    e.preventDefault();
+    var blob = items[i].getAsFile();
+    var ta = this;
+    var start = ta.selectionStart;
+
+    setStatus('正在上传图片...', 'info');
+
+    try {
+      var reader = new FileReader();
+      var b64 = await new Promise(function(resolve) {
+        reader.onload = function() { resolve(reader.result.split(',')[1]); };
+        reader.readAsDataURL(blob);
+      });
+
+      var ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/gif' ? 'gif' : 'jpg';
+      var filename = 'img-' + Date.now().toString(36) + '.' + ext;
+      var imgPath = DOCS_PATH + '/images/' + filename;
+
+      await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: '上传图片 ' + filename,
+          content: b64,
+          branch: BASE_BRANCH
+        })
+      });
+
+      var mdImg = '![' + filename + '](/images/' + filename + ')';
+      ta.setRangeText('\n' + mdImg + '\n', start, start, 'end');
+      updatePreview();
+      setStatus('图片已上传', 'success');
+      setTimeout(function() { setStatus(''); }, 1500);
+    } catch (err) {
+      setStatus('图片上传失败：' + err.message, 'error');
+    }
+    break;
+  }
+});
+
 // ====== 保存 ======
 async function saveArticle() {
   var title = document.getElementById('edit-title').value.trim();
