@@ -566,9 +566,6 @@ async function saveArticle() {
       });
     }
 
-    // 更新首页「最近更新」
-    await updateIndex();
-
     setStatus('已保存到 main 分支', 'success');
     _initialTitle = title;
     _initialContent = norm;
@@ -577,59 +574,6 @@ async function saveArticle() {
     setTimeout(function() { showTab('list'); }, 2000);
   } catch (e) {
     setStatus('提交失败：' + e.message, 'error');
-  }
-}
-
-async function updateIndex() {
-  var indexPath = DOCS_PATH + '/index.md';
-  try {
-    var tree = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/trees/' + BASE_BRANCH + '?recursive=1');
-    var articles = [];
-    for (var i = 0; i < tree.tree.length; i++) {
-      var item = tree.tree[i];
-      if (item.path.indexOf(DOCS_PATH + '/') !== 0) continue;
-      var rel = item.path.substring(DOCS_PATH.length + 1);
-      if (!rel.endsWith('.md') || rel === 'index.md') continue;
-      if (rel.indexOf('/images/') !== -1) continue;
-      var parts = rel.split('/');
-      var title = parts[parts.length - 1].replace('.md', '');
-      var cat = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
-      articles.push({ title: title, path: rel, cat: cat });
-    }
-    articles.sort(function(a, b) {
-      return a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title);
-    });
-    if (articles.length > 10) articles = articles.slice(0, 10);
-
-    var file = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + indexPath + '?ref=' + BASE_BRANCH);
-    var binaryStr = atob(file.content.replace(/\n/g, ''));
-    var bytes = new Uint8Array(binaryStr.length);
-    for (var j = 0; j < binaryStr.length; j++) bytes[j] = binaryStr.charCodeAt(j);
-    var content = new TextDecoder().decode(bytes);
-
-    var heading = '## 🕒 最近更新';
-    var idx = content.indexOf(heading);
-    var before = (idx !== -1) ? content.substring(0, idx + heading.length) : (content.trimEnd() + '\n\n' + heading);
-
-    var items = [];
-    for (var k = 0; k < articles.length; k++) {
-      items.push('- [' + articles[k].title + '](' + articles[k].path.replace('.md', '.html') + ')');
-    }
-    var newSection = '\n\n' + items.join('\n') + '\n';
-    content = before + newSection;
-
-    var enc2 = new TextEncoder();
-    var bts2 = enc2.encode(content);
-    var bin2 = '';
-    for (var l = 0; l < bts2.length; l++) bin2 += String.fromCharCode(bts2[l]);
-    var b642 = btoa(bin2);
-
-    await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + indexPath, {
-      method: 'PUT',
-      body: JSON.stringify({ message: '更新首页最近更新', content: b642, sha: file.sha, branch: BASE_BRANCH })
-    });
-  } catch (e) {
-    console.error('首页更新失败：', e);
   }
 }
 
@@ -648,7 +592,6 @@ async function deleteArticle() {
     await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + fullPath, {
       method: 'DELETE', body: JSON.stringify({ message: '删除 ' + title, sha: sha, branch: BASE_BRANCH })
     });
-    await updateIndex();
     setStatus('「' + title + '」已删除', 'success');
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';

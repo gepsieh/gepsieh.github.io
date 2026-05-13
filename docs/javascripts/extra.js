@@ -19,6 +19,38 @@ document.addEventListener('DOMContentLoaded', function() {
   btn.style.textDecoration = 'none';
   btn.style.zIndex = '9999';
   btn.innerHTML = '+';
-  
   document.body.appendChild(btn);
+
+  // 首页动态加载最近更新
+  var el = document.getElementById('recent-updates');
+  if (!el) return;
+
+  var API = 'https://api.github.com/repos/gepsieh/gepsieh.github.io/git/trees/main?recursive=1';
+  fetch(API)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var articles = [];
+      (data.tree || []).forEach(function(item) {
+        if (item.path.indexOf('docs/') !== 0) return;
+        var rel = item.path.substring(5);
+        if (!rel.endsWith('.md') || rel === 'index.md') return;
+        if (rel.indexOf('images/') !== -1) return;
+        var parts = rel.split('/');
+        var title = parts[parts.length - 1].replace('.md', '');
+        articles.push({ title: title, path: rel.replace('.md', '.html') });
+      });
+      if (!articles.length) { el.textContent = '暂无文章'; return; }
+      articles.sort(function(a, b) { return a.title.localeCompare(b.title); });
+      if (articles.length > 10) articles = articles.slice(0, 10);
+
+      var html = '<ul>';
+      articles.forEach(function(a) {
+        html += '<li><a href="' + a.path + '">' + a.title + '</a></li>';
+      });
+      html += '</ul>';
+      el.innerHTML = html;
+    })
+    .catch(function() {
+      el.textContent = '加载失败，请刷新重试';
+    });
 });
