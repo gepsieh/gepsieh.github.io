@@ -8,12 +8,18 @@ window.MathJax = {
     displayIndent: '0.5em',
     linebreaks: {
       automatic: true,
-      width: 'container',
     },
   },
   options: {
     ignoreHtmlClass: '.*',
     processHtmlClass: 'arithmatex',
+    renderActions: {
+      addStyles: [200, function (doc) {
+        var style = doc.createElement('style');
+        style.textContent = '.mjx-chtml { overflow-x: auto; overflow-y: hidden; max-width: 100%; }';
+        doc.head.appendChild(style);
+      }],
+    },
   },
 };
 
