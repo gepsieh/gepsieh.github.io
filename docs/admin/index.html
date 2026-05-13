@@ -446,7 +446,7 @@ document.getElementById('edit-content').addEventListener('keydown', function(e) 
   if (e.key === 'Tab') { e.preventDefault(); var ta = this; ta.setRangeText('  ', ta.selectionStart, ta.selectionStart, 'end'); }
 });
 
-// ====== 保存 (PR 流程) ======
+// ====== 保存 ======
 async function saveArticle() {
   var title = document.getElementById('edit-title').value.trim();
   var category = document.getElementById('edit-category').value;
@@ -473,28 +473,17 @@ async function saveArticle() {
     filePath = category ? category + '/' + title + '.md' : title + '.md';
   }
   var fullPath = DOCS_PATH + '/' + filePath;
-  var branchName = 'edit/' + filePath.replace(/[^a-zA-Z0-9_\-/]/g, '-').replace(/\/+$/, '') + '-' + Date.now().toString(36);
 
-  setStatus('正在创建 PR...', 'info');
+  setStatus('正在保存...', 'info');
   try {
-    var mainRef = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/refs/heads/' + BASE_BRANCH);
-    await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/refs', {
-      method: 'POST', body: JSON.stringify({ ref: 'refs/heads/' + branchName, sha: mainRef.object.sha })
-    });
-
-    var putBody = { message: editPath ? '更新 ' + title : '新建 ' + title, content: b64, branch: branchName };
+    var putBody = { message: editPath ? '更新 ' + title : '新建 ' + title, content: b64, branch: BASE_BRANCH };
     var sha = document.getElementById('edit-sha').value;
     if (sha && editPath) putBody.sha = sha;
     await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + fullPath, {
       method: 'PUT', body: JSON.stringify(putBody)
     });
 
-    var pr = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/pulls', {
-      method: 'POST',
-      body: JSON.stringify({ title: editPath ? '更新：' + title : '新建：' + title, head: branchName, base: BASE_BRANCH, body: '通过在线编辑器提交。' })
-    });
-
-    setStatus('PR 已创建！<a href="' + pr.html_url + '" target="_blank">查看 PR #' + pr.number + '</a>', 'success');
+    setStatus('已保存到 main 分支', 'success');
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';
     setTimeout(function() { showTab('list'); }, 2000);
@@ -503,31 +492,22 @@ async function saveArticle() {
   }
 }
 
-// ====== 删除 (PR 流程) ======
+// ====== 删除 ======
 async function deleteArticle() {
   var editPath = document.getElementById('edit-path').value;
   var sha = document.getElementById('edit-sha').value;
   var title = document.getElementById('edit-title').value;
   if (!editPath || !sha) { setStatus('缺少文件信息', 'error'); return; }
-  if (!confirm('确定要删除「' + title + '」吗？此操作将通过 PR 提交。')) return;
+  if (!confirm('确定要删除「' + title + '」吗？此操作将直接提交到 main 分支。')) return;
 
   var fullPath = DOCS_PATH + '/' + editPath;
-  var branchName = 'delete/' + editPath.replace(/[^a-zA-Z0-9_\-/]/g, '-') + '-' + Date.now().toString(36);
 
-  setStatus('正在创建删除 PR...', 'info');
+  setStatus('正在删除...', 'info');
   try {
-    var mainRef = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/refs/heads/' + BASE_BRANCH);
-    await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/refs', {
-      method: 'POST', body: JSON.stringify({ ref: 'refs/heads/' + branchName, sha: mainRef.object.sha })
-    });
     await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + fullPath, {
-      method: 'DELETE', body: JSON.stringify({ message: '删除 ' + title, sha: sha, branch: branchName })
+      method: 'DELETE', body: JSON.stringify({ message: '删除 ' + title, sha: sha, branch: BASE_BRANCH })
     });
-    var pr = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/pulls', {
-      method: 'POST',
-      body: JSON.stringify({ title: '删除：' + title, head: branchName, base: BASE_BRANCH, body: '通过在线编辑器提交。' })
-    });
-    setStatus('删除 PR 已创建！<a href="' + pr.html_url + '" target="_blank">查看 PR #' + pr.number + '</a>', 'success');
+    setStatus('「' + title + '」已删除', 'success');
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';
     setTimeout(function() { showTab('list'); }, 2000);
