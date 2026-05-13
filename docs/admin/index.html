@@ -587,14 +587,14 @@ function updatePreview() {
   var mathBlocks = [];
   content = content.replace(/\$\$([\s\S]*?)\$\$/g, function(m) {
     mathBlocks.push(m);
-    return '\x00MATH' + (mathBlocks.length - 1) + '\x00';
+    return '⟨MATH' + (mathBlocks.length - 1) + '⟩';
   });
 
   const md = (title ? '# ' + title + '\n\n' : '') + content;
   var html = marked.parse(md);
 
   // 还原数学块
-  html = html.replace(/\x00MATH(\d+)\x00/g, function(_, n) {
+  html = html.replace(/⟨MATH(\d+)⟩/g, function(_, n) {
     return mathBlocks[parseInt(n)];
   });
 
