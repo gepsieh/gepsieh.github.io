@@ -129,8 +129,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <span style="color:#888;">已登录：<strong id="user-name"></strong></span>
       <div>
-        <button class="btn" onclick="showTab('list')">📋 文章列表</button>
-        <button class="btn" onclick="showTab('edit')">✏️ 编辑</button>
+        <button class="btn" id="btn-list" onclick="goToList()">📋 文章列表</button>
         <button class="btn" onclick="logout()">❌ 退出</button>
       </div>
     </div>
@@ -179,8 +178,7 @@
           </div>
         </div>
         <div class="inline-group">
-          <button type="button" class="btn-primary" onclick="saveArticle()">💾 提交 </button>
-          <button type="button" class="btn" onclick="discardEdit()" style="white-space:nowrap;">⬅️ 取消</button>
+          <button type="button" class="btn-primary" onclick="saveArticle()">💾 提交</button>
           <button type="button" class="btn btn-danger hidden" id="delete-btn" onclick="deleteArticle()">🗑️ 删除</button>
         </div>
       </form>
@@ -343,9 +341,21 @@ function setStatus(msg, type) {
   s.style.display = msg ? 'block' : 'none';
 }
 
+var _initialContent = '';
+var _initialTitle = '';
+
+function goToList() {
+  var curContent = document.getElementById('edit-content').value;
+  var curTitle = document.getElementById('edit-title').value;
+  if ((curContent !== _initialContent || curTitle !== _initialTitle) &&
+      !confirm('内容尚未保存，确定要离开吗？')) return;
+  showTab('list');
+}
+
 function showTab(tab) {
   document.getElementById('tab-list').classList.toggle('hidden', tab !== 'list');
   document.getElementById('tab-edit').classList.toggle('hidden', tab !== 'edit');
+  document.getElementById('btn-list').style.display = tab === 'edit' ? '' : 'none';
   if (tab === 'list') { loadArticles(); setStatus(''); }
 }
 
@@ -355,6 +365,8 @@ function newArticle() {
   document.getElementById('edit-title').value = '';
   document.getElementById('edit-content').value = '';
   document.getElementById('delete-btn').classList.add('hidden');
+  _initialTitle = '';
+  _initialContent = '';
   showTab('edit');
   loadCategories();
   updatePreview();
@@ -393,6 +405,8 @@ async function editArticle(path) {
     }
     document.getElementById('edit-title').value = title;
     document.getElementById('edit-content').value = body.trimEnd();
+    _initialTitle = title;
+    _initialContent = body.trimEnd();
 
     if (parts.length > 1) {
       var cat = parts.slice(0, -1).join('/');
@@ -541,6 +555,8 @@ async function saveArticle() {
     });
 
     setStatus('已保存到 main 分支', 'success');
+    _initialTitle = title;
+    _initialContent = norm;
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';
     setTimeout(function() { showTab('list'); }, 2000);
