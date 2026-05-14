@@ -617,14 +617,43 @@ async function deleteArticle() {
 
   var fullPath = DOCS_PATH + '/' + editPath;
 
+  // 从编辑框内容中提取本站已上传的图片文件名（去重）
+  var content = document.getElementById('edit-content').value;
+  var imgPattern = new RegExp(
+    'https://raw\\.githubusercontent\\.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + DOCS_PATH + '/images/([^)\\s]+)',
+    'g'
+  );
+  var imageFiles = {};
+  var m;
+  while ((m = imgPattern.exec(content)) !== null) {
+    imageFiles[m[1]] = true;
+  }
+  var filenames = Object.keys(imageFiles);
+
   setStatus('正在删除...', 'info');
   try {
     await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + fullPath, {
       method: 'DELETE', body: JSON.stringify({ message: '删除 ' + title, sha: sha, branch: BASE_BRANCH })
     });
-    setStatus('「' + title + '」已删除', 'success');
+
+    // 删除文章中引用的图片
+    for (var i = 0; i < filenames.length; i++) {
+      var imgPath = DOCS_PATH + '/images/' + filenames[i];
+      try {
+        var imgFile = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath + '?ref=' + BASE_BRANCH);
+        await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
+          method: 'DELETE',
+          body: JSON.stringify({ message: '删除文章 ' + title + ' 时清理图片 ' + filenames[i], sha: imgFile.sha, branch: BASE_BRANCH })
+        });
+      } catch (e) {
+        // 图片可能不存在或已被删除，忽略继续
+      }
+    }
+
+    setStatus('「' + title + '」已删除' + (filenames.length ? '（含 ' + filenames.length + ' 张图片）' : ''), 'success');
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';
+    cleanPendingImages();
     setTimeout(function() { showTab('list'); }, 2000);
   } catch (e) {
     setStatus('删除失败：' + e.message, 'error');
