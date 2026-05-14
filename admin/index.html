@@ -202,106 +202,66 @@ const REPO_NAME = 'gepsieh.github.io';
 const BASE_BRANCH = 'main';
 const DOCS_PATH = 'docs';
 
-// GitHub OAuth App 配置（需要注册 OAuth App: https://github.com/settings/developers）
-// 必须与 OAuth App 中的 "Authorization callback URL" 完全一致（包括末尾斜杠）
+// GitHub OAuth App 配置
+// 需要注册 OAuth App (https://github.com/settings/developers)
+// Authorization callback URL 必须设置为: https://long-moon-1aef.314308943.workers.dev/callback
 const OAUTH_CLIENT_ID = 'Ov23lil851QegM31ONal';
-const OAUTH_REDIRECT_URI = 'https://gepsieh.github.io/admin/';
+const OAUTH_REDIRECT_URI = 'https://long-moon-1aef.314308943.workers.dev/callback';
 
-// ====== OAuth PKCE 工具函数 ======
-function base64URL(buf) {
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-function sha256(plain) {
-  var encoder = new TextEncoder();
-  return crypto.subtle.digest('SHA-256', encoder.encode(plain));
-}
-
+// ====== OAuth 工具函数 ======
 function randomString(len) {
   var arr = new Uint8Array(len);
   crypto.getRandomValues(arr);
-  return base64URL(arr);
+  return btoa(String.fromCharCode.apply(null, arr))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 function startOAuth() {
   if (!OAUTH_CLIENT_ID) {
     var s = document.getElementById('login-status');
     s.className = 'status error';
-    s.textContent = '尚未配置 OAuth Client ID，请先注册 GitHub OAuth App 并填入 OAUTH_CLIENT_ID';
+    s.textContent = '尚未配置 OAuth Client ID';
     return;
   }
-  var verifier = randomString(64);
   var state = randomString(32);
-  sessionStorage.setItem('oauth_verifier', verifier);
   sessionStorage.setItem('oauth_state', state);
-  sha256(verifier).then(function(digest) {
-    var challenge = base64URL(digest);
-    var authUrl = 'https://github.com/login/oauth/authorize?' +
-      'client_id=' + encodeURIComponent(OAUTH_CLIENT_ID) +
-      '&redirect_uri=' + encodeURIComponent(OAUTH_REDIRECT_URI) +
-      '&scope=repo' +
-      '&state=' + encodeURIComponent(state) +
-      '&code_challenge=' + encodeURIComponent(challenge) +
-      '&code_challenge_method=S256';
-    window.location.href = authUrl;
-  });
-}
-
-async function exchangeToken(code, verifier) {
-  var body = 'client_id=' + encodeURIComponent(OAUTH_CLIENT_ID) +
-    '&code=' + encodeURIComponent(code) +
+  var authUrl = 'https://github.com/login/oauth/authorize?' +
+    'client_id=' + encodeURIComponent(OAUTH_CLIENT_ID) +
     '&redirect_uri=' + encodeURIComponent(OAUTH_REDIRECT_URI) +
-    '&code_verifier=' + encodeURIComponent(verifier) +
-    '&grant_type=authorization_code';
-  var r = await fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
-    body: body
-  });
-  if (!r.ok) {
-    var txt = await r.text();
-    throw new Error('Token exchange failed: HTTP ' + r.status + ' - ' + txt);
-  }
-  var data = await r.json();
-  if (data.error) throw new Error(data.error_description || data.error);
-  return data.access_token;
+    '&scope=repo' +
+    '&state=' + encodeURIComponent(state);
+  window.location.href = authUrl;
 }
 
+// Worker 交换 token 后通过 URL hash 回调，此函数提取并验证
 async function handleOAuthCallback() {
-  var params = new URLSearchParams(window.location.search);
-  var code = params.get('code');
+  var hash = window.location.hash.substring(1); // 去掉开头的 #
+  if (!hash) return false;
+  var params = new URLSearchParams(hash);
+  var token = params.get('access_token');
   var state = params.get('state');
-  if (!code) return false;
+  if (!token) return false;
 
   var savedState = sessionStorage.getItem('oauth_state');
-  var verifier = sessionStorage.getItem('oauth_verifier');
+  sessionStorage.removeItem('oauth_state');
   var s = document.getElementById('login-status');
-  if (!savedState || state !== savedState) {
+  if (savedState && state !== savedState) {
     s.className = 'status error';
     s.textContent = 'OAuth state 不匹配，请重新登录';
+    window.history.replaceState({}, document.title, window.location.pathname);
     return true;
   }
-  if (!verifier) {
-    s.className = 'status error';
-    s.textContent = 'OAuth 验证信息丢失，请重新登录';
-    return true;
-  }
+
   s.className = 'status info';
-  s.textContent = '正在交换 Token...';
+  s.textContent = '正在验证...';
   try {
-    var token = await exchangeToken(code, verifier);
-    setToken(token);
-    // 获取用户信息
     var userR = await fetch('https://api.github.com/user', {
       headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
     });
     if (!userR.ok) throw new Error('无法获取用户信息: HTTP ' + userR.status);
     var user = await userR.json();
+    setToken(token);
     localStorage.setItem('gh_user', user.login);
-    sessionStorage.removeItem('oauth_verifier');
-    sessionStorage.removeItem('oauth_state');
-    // 清理 URL 中的 OAuth 参数
     window.history.replaceState({}, document.title, window.location.pathname);
     document.getElementById('user-name').textContent = user.login;
     showEditorView();
@@ -310,8 +270,6 @@ async function handleOAuthCallback() {
   } catch (e) {
     s.className = 'status error';
     s.textContent = '登录失败: ' + e.message;
-    sessionStorage.removeItem('oauth_verifier');
-    sessionStorage.removeItem('oauth_state');
     return true;
   }
 }
@@ -335,7 +293,6 @@ function logout() {
   triggerDeploy(true);
   localStorage.removeItem('gh_token');
   localStorage.removeItem('gh_user');
-  sessionStorage.removeItem('oauth_verifier');
   sessionStorage.removeItem('oauth_state');
   document.getElementById('token-input').value = '';
   document.getElementById('login-status').className = 'status';
@@ -923,8 +880,8 @@ async function deleteArticle() {
 
 // ====== 初始化 ======
 (function init() {
-  // 检查 OAuth 回调
-  if (window.location.search.indexOf('code=') !== -1) {
+  // OAuth 回调：Worker 通过 URL hash 回传 access_token
+  if (window.location.hash.indexOf('access_token=') !== -1) {
     handleOAuthCallback().then(function(handled) {
       if (handled) return;
       var token = getToken();
