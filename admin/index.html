@@ -131,6 +131,7 @@
       <div style="display:flex;align-items:center;gap:10px;">
         <button class="btn" id="btn-list" onclick="goToList()">📋 文章列表</button>
         <span style="display:flex;align-items:center;gap:6px;color:#888;font-size:14px;">
+          <span id="readonly-badge" style="display:none;background:#fff3cd;color:#856404;padding:1px 6px;border-radius:4px;font-size:12px;font-weight:600;">只读模式</span>
           <img id="user-avatar" style="width:26px;height:26px;border-radius:50%;display:none;border:1px solid #e2e8f0;">
           <strong id="user-name"></strong>
         </span>
@@ -308,8 +309,12 @@ function applyWritePermission() {
   var canWrite = localStorage.getItem('gh_can_write') === '1';
 
   if (!canWrite) {
+    alert('⚠️ 您没有写权限，当前为只读模式');
     document.getElementById('login-status').className = 'status info';
     document.getElementById('login-status').textContent = '⚠️ 您没有写权限，当前为只读模式';
+
+    // 头部显示只读标识
+    document.getElementById('readonly-badge').style.display = '';
 
     // 文章列表页：隐藏新建 / 刷新站点
     var newBtn = document.querySelector('#tab-list > .btn-primary');
@@ -323,6 +328,8 @@ function applyWritePermission() {
     document.getElementById('edit-content').readOnly = true;
     var toolbarBtns = document.querySelectorAll('.toolbar button');
     toolbarBtns.forEach(function(b) { b.disabled = true; });
+    var catBtns = document.querySelectorAll('#edit-form .field button');
+    catBtns.forEach(function(b) { b.disabled = true; });
     document.getElementById('delete-btn').classList.add('hidden');
     // 隐藏提交/删除按钮行
     var inlineGroup = document.querySelector('#tab-edit .inline-group');
@@ -354,6 +361,7 @@ async function logout() {
   localStorage.removeItem('gh_can_write');
   sessionStorage.removeItem('oauth_state');
   document.getElementById('user-avatar').style.display = 'none';
+  document.getElementById('readonly-badge').style.display = 'none';
   document.getElementById('login-status').className = 'status';
   document.getElementById('login-status').textContent = '';
   showLoginView();
