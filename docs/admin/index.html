@@ -69,6 +69,9 @@
     .status.error { background: #fff2f0; color: #ff4d4f; display: block; }
     .status.success { background: #f6ffed; color: #52c41a; display: block; }
     .hidden { display: none !important; }
+    .oauth-box { margin: 1rem 0; padding: 1.2rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; }
+    .oauth-box .or { margin: 1rem 0; color: #94a3b8; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+    .oauth-box .or::before, .oauth-box .or::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
@@ -113,8 +116,10 @@
   <!-- ====== 登录界面 ====== -->
   <div id="login-view">
     <h1>📝 原神资料站 · 在线编辑</h1>
-    <div class="field">
-      <label>🔑 GitHub Personal Access Token</label>
+    <div class="oauth-box">
+      <p style="margin-bottom:0.8rem;color:#475569;font-size:0.92rem;">使用 GitHub 账号安全登录，无需手动创建 Token</p>
+      <button class="btn-primary" onclick="startOAuth()" style="font-size:1rem;padding:10px 28px;">🔐 使用 GitHub 登录</button>
+      <div class="or">或者使用 Token 登录</div>
       <div style="display:flex;gap:8px;">
         <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="flex:1;">
         <button class="btn-primary" onclick="doLogin()" style="white-space:nowrap;">登录</button>
@@ -197,6 +202,120 @@ const REPO_NAME = 'gepsieh.github.io';
 const BASE_BRANCH = 'main';
 const DOCS_PATH = 'docs';
 
+// GitHub OAuth App 配置（需要注册 OAuth App: https://github.com/settings/developers）
+// 回调地址设置为: https://gepsieh.github.io/admin/
+const OAUTH_CLIENT_ID = '';
+const OAUTH_REDIRECT_URI = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+
+// ====== OAuth PKCE 工具函数 ======
+function base64URL(buf) {
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function sha256(plain) {
+  var encoder = new TextEncoder();
+  return crypto.subtle.digest('SHA-256', encoder.encode(plain));
+}
+
+function randomString(len) {
+  var arr = new Uint8Array(len);
+  crypto.getRandomValues(arr);
+  return base64URL(arr);
+}
+
+function startOAuth() {
+  if (!OAUTH_CLIENT_ID) {
+    var s = document.getElementById('login-status');
+    s.className = 'status error';
+    s.textContent = '尚未配置 OAuth Client ID，请先注册 GitHub OAuth App 并填入 OAUTH_CLIENT_ID';
+    return;
+  }
+  var verifier = randomString(64);
+  var state = randomString(32);
+  sessionStorage.setItem('oauth_verifier', verifier);
+  sessionStorage.setItem('oauth_state', state);
+  sha256(verifier).then(function(digest) {
+    var challenge = base64URL(digest);
+    var authUrl = 'https://github.com/login/oauth/authorize?' +
+      'client_id=' + encodeURIComponent(OAUTH_CLIENT_ID) +
+      '&redirect_uri=' + encodeURIComponent(OAUTH_REDIRECT_URI) +
+      '&scope=repo' +
+      '&state=' + encodeURIComponent(state) +
+      '&code_challenge=' + encodeURIComponent(challenge) +
+      '&code_challenge_method=S256';
+    window.location.href = authUrl;
+  });
+}
+
+async function exchangeToken(code, verifier) {
+  var body = 'client_id=' + encodeURIComponent(OAUTH_CLIENT_ID) +
+    '&code=' + encodeURIComponent(code) +
+    '&redirect_uri=' + encodeURIComponent(OAUTH_REDIRECT_URI) +
+    '&code_verifier=' + encodeURIComponent(verifier) +
+    '&grant_type=authorization_code';
+  var r = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+    body: body
+  });
+  if (!r.ok) {
+    var txt = await r.text();
+    throw new Error('Token exchange failed: HTTP ' + r.status + ' - ' + txt);
+  }
+  var data = await r.json();
+  if (data.error) throw new Error(data.error_description || data.error);
+  return data.access_token;
+}
+
+async function handleOAuthCallback() {
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+  var state = params.get('state');
+  if (!code) return false;
+
+  var savedState = sessionStorage.getItem('oauth_state');
+  var verifier = sessionStorage.getItem('oauth_verifier');
+  var s = document.getElementById('login-status');
+  if (!savedState || state !== savedState) {
+    s.className = 'status error';
+    s.textContent = 'OAuth state 不匹配，请重新登录';
+    return true;
+  }
+  if (!verifier) {
+    s.className = 'status error';
+    s.textContent = 'OAuth 验证信息丢失，请重新登录';
+    return true;
+  }
+  s.className = 'status info';
+  s.textContent = '正在交换 Token...';
+  try {
+    var token = await exchangeToken(code, verifier);
+    setToken(token);
+    // 获取用户信息
+    var userR = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!userR.ok) throw new Error('无法获取用户信息: HTTP ' + userR.status);
+    var user = await userR.json();
+    localStorage.setItem('gh_user', user.login);
+    sessionStorage.removeItem('oauth_verifier');
+    sessionStorage.removeItem('oauth_state');
+    // 清理 URL 中的 OAuth 参数
+    window.history.replaceState({}, document.title, window.location.pathname);
+    document.getElementById('user-name').textContent = user.login;
+    showEditorView();
+    loadArticles();
+    return true;
+  } catch (e) {
+    s.className = 'status error';
+    s.textContent = '登录失败: ' + e.message;
+    sessionStorage.removeItem('oauth_verifier');
+    sessionStorage.removeItem('oauth_state');
+    return true;
+  }
+}
+
 // ====== 认证 ======
 function getToken() { return localStorage.getItem('gh_token'); }
 function setToken(t) { localStorage.setItem('gh_token', t); }
@@ -216,6 +335,8 @@ function logout() {
   triggerDeploy(true);
   localStorage.removeItem('gh_token');
   localStorage.removeItem('gh_user');
+  sessionStorage.removeItem('oauth_verifier');
+  sessionStorage.removeItem('oauth_state');
   document.getElementById('token-input').value = '';
   document.getElementById('login-status').className = 'status';
   document.getElementById('login-status').textContent = '';
@@ -802,6 +923,23 @@ async function deleteArticle() {
 
 // ====== 初始化 ======
 (function init() {
+  // 检查 OAuth 回调
+  if (window.location.search.indexOf('code=') !== -1) {
+    handleOAuthCallback().then(function(handled) {
+      if (handled) return;
+      var token = getToken();
+      if (token) {
+        var user = localStorage.getItem('gh_user');
+        if (user) document.getElementById('user-name').textContent = user;
+        showEditorView();
+        loadArticles();
+      } else {
+        showLoginView();
+      }
+    });
+    return;
+  }
+
   var token = getToken();
   if (token) {
     var user = localStorage.getItem('gh_user');
