@@ -127,12 +127,13 @@
   <div id="editor-view" class="hidden">
     <h1>📝 原神资料站 · 在线编辑</h1>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <span style="display:flex;align-items:center;gap:8px;color:#888;">
-        <img id="user-avatar" style="width:28px;height:28px;border-radius:50%;display:none;border:1px solid #e2e8f0;">
-        <strong id="user-name"></strong>
-      </span>
-      <div>
+      <span></span>
+      <div style="display:flex;align-items:center;gap:10px;">
         <button class="btn" id="btn-list" onclick="goToList()">📋 文章列表</button>
+        <span style="display:flex;align-items:center;gap:6px;color:#888;font-size:14px;">
+          <img id="user-avatar" style="width:26px;height:26px;border-radius:50%;display:none;border:1px solid #e2e8f0;">
+          <strong id="user-name"></strong>
+        </span>
         <button class="btn" id="btn-logout" onclick="logout()">🚪 登出</button>
       </div>
     </div>
