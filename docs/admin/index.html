@@ -569,28 +569,63 @@ async function saveArticle() {
   if (renamed) {
     var oldImgSlug = editPath.replace(/\.md$/, '');
     var oldImgFolder = DOCS_PATH + '/images/' + oldImgSlug;
-    var oldPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + oldImgFolder + '/';
-    var newPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + imgFolder + '/';
     if (oldImgFolder !== imgFolder) {
+      // 匹配两种 URL 格式：
+      // 绝对: https://raw.githubusercontent.com/.../docs/images/oldSlug/filename
+      // 相对: 任意前缀 + images/oldSlug/filename（如 ../images/... 或 /images/...）
+      var absOldPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + oldImgFolder + '/';
+      var absNewPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + imgFolder + '/';
+      var absRegex = new RegExp(absOldPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^)\\s]+)', 'g');
+      var relPattern = 'images/' + oldImgSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/';
+      var relRegex = new RegExp('(' + relPattern + ')([^)\\s]+)', 'g');
+
+      var seenFiles = {}; // 避免同文件被重复迁移（绝对和相对 URL 引用同一文件）
       try {
         setStatus('正在迁移图片...', 'info');
-        var regex = new RegExp(oldPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^)\\s]+)', 'g');
+
+        // 处理绝对 URL
         var mm;
-        while ((mm = regex.exec(content)) !== null) {
-          var oldFullUrl = mm[0];
+        while ((mm = absRegex.exec(content)) !== null) {
           var imgFilename = mm[1];
-          var oldFilePath = oldImgFolder + '/' + imgFilename;
-          var newFilePath = imgFolder + '/' + imgFilename;
-          var imgFile = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath + '?ref=' + BASE_BRANCH);
-          await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + newFilePath, {
-            method: 'PUT',
-            body: JSON.stringify({ message: '迁移图片 ' + imgFilename, content: imgFile.content, branch: BASE_BRANCH })
-          });
-          await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath, {
-            method: 'DELETE',
-            body: JSON.stringify({ message: '迁移图片', sha: imgFile.sha, branch: BASE_BRANCH })
-          });
-          content = content.replace(oldFullUrl, newPrefix + imgFilename);
+          if (seenFiles[imgFilename]) continue;
+          seenFiles[imgFilename] = true;
+          try {
+            var oldFilePath = oldImgFolder + '/' + imgFilename;
+            var newFilePath = imgFolder + '/' + imgFilename;
+            var imgFile = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath + '?ref=' + BASE_BRANCH);
+            await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + newFilePath, {
+              method: 'PUT',
+              body: JSON.stringify({ message: '迁移图片 ' + imgFilename, content: imgFile.content, branch: BASE_BRANCH })
+            });
+            await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath, {
+              method: 'DELETE',
+              body: JSON.stringify({ message: '迁移图片', sha: imgFile.sha, branch: BASE_BRANCH })
+            });
+            content = content.replace(mm[0], absNewPrefix + imgFilename);
+          } catch (e2) { /* 单文件迁移失败跳过 */ }
+        }
+
+        // 处理相对路径
+        var rm;
+        while ((rm = relRegex.exec(content)) !== null) {
+          var relMatch = rm[0];
+          var imgFilename2 = rm[2];
+          if (seenFiles[imgFilename2]) continue;
+          seenFiles[imgFilename2] = true;
+          try {
+            var oldFilePath2 = oldImgFolder + '/' + imgFilename2;
+            var newFilePath2 = imgFolder + '/' + imgFilename2;
+            var imgFile2 = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath2 + '?ref=' + BASE_BRANCH);
+            await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + newFilePath2, {
+              method: 'PUT',
+              body: JSON.stringify({ message: '迁移图片 ' + imgFilename2, content: imgFile2.content, branch: BASE_BRANCH })
+            });
+            await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath2, {
+              method: 'DELETE',
+              body: JSON.stringify({ message: '迁移图片', sha: imgFile2.sha, branch: BASE_BRANCH })
+            });
+            content = content.replace(relMatch, relMatch.replace('images/' + oldImgSlug + '/', 'images/' + imgSlug + '/'));
+          } catch (e2) { /* 单文件迁移失败跳过 */ }
         }
       } catch (e) {
         // 旧图片文件夹可能为空或不存在
