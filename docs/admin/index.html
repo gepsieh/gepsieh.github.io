@@ -364,6 +364,7 @@ function showTab(tab) {
 }
 
 function newArticle() {
+  cleanPendingImages();
   document.getElementById('edit-path').value = '';
   document.getElementById('edit-sha').value = '';
   document.getElementById('edit-title').value = '';
@@ -381,6 +382,7 @@ function discardEdit() {
 }
 
 async function editArticle(path) {
+  cleanPendingImages();
   setStatus('');
   var decoded = decodeURIComponent(path);
   document.getElementById('edit-path').value = decoded;
@@ -468,71 +470,44 @@ document.getElementById('edit-content').addEventListener('keydown', function(e) 
   if (e.key === 'Tab') { e.preventDefault(); var ta = this; ta.setRangeText('  ', ta.selectionStart, ta.selectionStart, 'end'); }
 });
 
-// 图片上传（paste 和 文件选择 共用）
-async function uploadImage(blob, ta) {
+// 待上传的图片（blobUrl -> {blob, filename}），提交时一起上传
+var _pendingImages = {};
+
+// 插入图片到编辑框（仅预览，不立即上传）
+function insertImageBlob(blob, ta) {
   var start = ta.selectionStart;
   var ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/gif' ? 'gif' : 'jpg';
   var filename = 'img-' + Date.now().toString(36) + '.' + ext;
-
-  // 先用 blob URL 插入预览
   var blobUrl = URL.createObjectURL(blob);
+  _pendingImages[blobUrl] = { blob: blob, filename: filename };
   var mdImg = '![' + filename + '](' + blobUrl + ')';
   ta.setRangeText('\n' + mdImg + '\n', start, start, 'end');
   updatePreview();
-
-  setStatus('正在上传图片...', 'info');
-
-  try {
-    var reader = new FileReader();
-    var b64 = await new Promise(function(resolve) {
-      reader.onload = function() { resolve(reader.result.split(',')[1]); };
-      reader.readAsDataURL(blob);
-    });
-
-    var imgPath = DOCS_PATH + '/images/' + filename;
-
-    var result = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
-      method: 'PUT',
-      body: JSON.stringify({
-        message: '上传图片 ' + filename,
-        content: b64,
-        branch: BASE_BRANCH
-      })
-    });
-
-    // 替换为永久 URL
-    var rawUrl = result.content.download_url;
-    ta.value = ta.value.replace(blobUrl, rawUrl);
-    URL.revokeObjectURL(blobUrl);
-    updatePreview();
-    setStatus('图片已上传', 'success');
-    setTimeout(function() { setStatus(''); }, 1500);
-  } catch (err) {
-    URL.revokeObjectURL(blobUrl);
-    setStatus('图片上传失败：' + err.message, 'error');
-  }
 }
 
-// 粘贴图片
-document.getElementById('edit-content').addEventListener('paste', async function(e) {
+function cleanPendingImages() {
+  Object.keys(_pendingImages).forEach(function(url) { URL.revokeObjectURL(url); });
+  _pendingImages = {};
+}
+
+// 粘贴图片（仅预览）
+document.getElementById('edit-content').addEventListener('paste', function(e) {
   var items = e.clipboardData && e.clipboardData.items;
   if (!items) return;
-
   for (var i = 0; i < items.length; i++) {
     if (items[i].type.indexOf('image') !== 0) continue;
     e.preventDefault();
-    uploadImage(items[i].getAsFile(), this);
+    insertImageBlob(items[i].getAsFile(), this);
     break;
   }
 });
 
-// 文件选择上传图片
+// 文件选择图片（仅预览）
 document.getElementById('image-input').addEventListener('change', function(e) {
   var file = e.target.files && e.target.files[0];
   if (!file) return;
   var ta = document.getElementById('edit-content');
-  uploadImage(file, ta);
-  // 重置 input 以便可以重复选择同一文件
+  insertImageBlob(file, ta);
   this.value = '';
 });
 
@@ -544,6 +519,44 @@ async function saveArticle() {
   var editPath = document.getElementById('edit-path').value;
   var oldSha = document.getElementById('edit-sha').value;
   if (!title) { setStatus('请输入标题', 'error'); return; }
+
+  // 先上传所有待处理的图片，替换 blob URL 为永久 URL
+  var contentElem = document.getElementById('edit-content');
+  var pendingUrls = Object.keys(_pendingImages);
+  if (pendingUrls.length) {
+    setStatus('正在上传图片...', 'info');
+    for (var i = 0; i < pendingUrls.length; i++) {
+      var blobUrl = pendingUrls[i];
+      var img = _pendingImages[blobUrl];
+      try {
+        var reader = new FileReader();
+        var b64 = await new Promise(function(resolve) {
+          reader.onload = function() { resolve(reader.result.split(',')[1]); };
+          reader.readAsDataURL(img.blob);
+        });
+        var imgPath = DOCS_PATH + '/images/' + img.filename;
+        var result = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
+          method: 'PUT',
+          body: JSON.stringify({
+            message: '上传图片 ' + img.filename,
+            content: b64,
+            branch: BASE_BRANCH
+          })
+        });
+        var rawUrl = result.content.download_url;
+        content = content.replace(blobUrl, rawUrl);
+        URL.revokeObjectURL(blobUrl);
+        delete _pendingImages[blobUrl];
+      } catch (err) {
+        URL.revokeObjectURL(blobUrl);
+        delete _pendingImages[blobUrl];
+        setStatus('图片上传失败：' + err.message, 'error');
+        return;
+      }
+    }
+    contentElem.value = content;
+    updatePreview();
+  }
 
   var norm = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   var mdContent = '# ' + title + '\n\n' + norm + '\n';
