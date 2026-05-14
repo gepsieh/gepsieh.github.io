@@ -10,6 +10,7 @@ markdown_extensions:
 theme:
   name: readthedocs
   locale: zh_CN
+  custom_dir: overrides
 extra_javascript:
 - javascripts/extra.js
 - javascripts/mathjax.js
@@ -24,3 +25,4 @@ plugins:
     timezone: Asia/Shanghai
     locale: zh
     fallback_to_build_date: true
+    enable_creation_date: true
