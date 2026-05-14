@@ -547,11 +547,74 @@ async function saveArticle() {
   var oldSha = document.getElementById('edit-sha').value;
   if (!title) { setStatus('请输入标题', 'error'); return; }
 
-  // 先上传所有待处理的图片，替换 blob URL 为永久 URL
+  // 根据标题/分类重建路径
+  var filePath;
+  if (editPath) {
+    var pa = editPath.split('/');
+    pa[pa.length - 1] = title + '.md';
+    if (category && pa.length > 1) pa[pa.length - 2] = category;
+    else if (category) pa.unshift(category);
+    filePath = pa.join('/');
+  } else {
+    filePath = category ? category + '/' + title + '.md' : title + '.md';
+  }
+  var fullPath = DOCS_PATH + '/' + filePath;
+
+  // 图片文件夹路径（以文章路径为基础，不含 .md）
+  var imgSlug = filePath.replace(/\.md$/, '');
+  var imgFolder = DOCS_PATH + '/images/' + imgSlug;
+  var renamed = editPath && filePath !== editPath;
+
+  // 重命名时：迁移旧图片文件夹到新路径
+  if (renamed) {
+    var oldImgSlug = editPath.replace(/\.md$/, '');
+    var oldImgFolder = DOCS_PATH + '/images/' + oldImgSlug;
+    var oldPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + oldImgFolder + '/';
+    var newPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + imgFolder + '/';
+    if (oldImgFolder !== imgFolder) {
+      try {
+        setStatus('正在迁移图片...', 'info');
+        var regex = new RegExp(oldPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^)\\s]+)', 'g');
+        var mm;
+        while ((mm = regex.exec(content)) !== null) {
+          var oldFullUrl = mm[0];
+          var imgFilename = mm[1];
+          var oldFilePath = oldImgFolder + '/' + imgFilename;
+          var newFilePath = imgFolder + '/' + imgFilename;
+          var imgFile = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath + '?ref=' + BASE_BRANCH);
+          await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + newFilePath, {
+            method: 'PUT',
+            body: JSON.stringify({ message: '迁移图片 ' + imgFilename, content: imgFile.content, branch: BASE_BRANCH })
+          });
+          await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + oldFilePath, {
+            method: 'DELETE',
+            body: JSON.stringify({ message: '迁移图片', sha: imgFile.sha, branch: BASE_BRANCH })
+          });
+          content = content.replace(oldFullUrl, newPrefix + imgFilename);
+        }
+      } catch (e) {
+        // 旧图片文件夹可能为空或不存在
+      }
+    }
+  }
+
+  // 上传待处理的图片到新文件夹
   var contentElem = document.getElementById('edit-content');
   var pendingUrls = Object.keys(_pendingImages);
   if (pendingUrls.length) {
     setStatus('正在上传图片...', 'info');
+    // 确保图片文件夹存在（创建一个 .gitkeep 空文件）
+    var gitkeepPath = imgFolder + '/.gitkeep';
+    try {
+      await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + gitkeepPath + '?ref=' + BASE_BRANCH);
+    } catch (e) {
+      try {
+        await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + gitkeepPath, {
+          method: 'PUT',
+          body: JSON.stringify({ message: '创建图片文件夹', content: btoa(''), branch: BASE_BRANCH })
+        });
+      } catch (e2) { /* 忽略 */ }
+    }
     for (var i = 0; i < pendingUrls.length; i++) {
       var blobUrl = pendingUrls[i];
       var img = _pendingImages[blobUrl];
@@ -561,7 +624,7 @@ async function saveArticle() {
           reader.onload = function() { resolve(reader.result.split(',')[1]); };
           reader.readAsDataURL(img.blob);
         });
-        var imgPath = DOCS_PATH + '/images/' + img.filename;
+        var imgPath = imgFolder + '/' + img.filename;
         var result = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
           method: 'PUT',
           body: JSON.stringify({
@@ -592,20 +655,6 @@ async function saveArticle() {
   var bin = '';
   for (var i = 0; i < bts.length; i++) bin += String.fromCharCode(bts[i]);
   var b64 = btoa(bin);
-
-  // 根据标题/分类重建路径
-  var filePath;
-  if (editPath) {
-    var pa = editPath.split('/');
-    pa[pa.length - 1] = title + '.md';
-    if (category && pa.length > 1) pa[pa.length - 2] = category;
-    else if (category) pa.unshift(category);
-    filePath = pa.join('/');
-  } else {
-    filePath = category ? category + '/' + title + '.md' : title + '.md';
-  }
-  var fullPath = DOCS_PATH + '/' + filePath;
-  var renamed = editPath && filePath !== editPath;
 
   setStatus('正在保存...', 'info');
   try {
@@ -643,41 +692,36 @@ async function deleteArticle() {
   if (!confirm('确定要删除「' + title + '」吗？此操作将直接提交到 main 分支。')) return;
 
   var fullPath = DOCS_PATH + '/' + editPath;
-
-  // 从编辑框内容中提取本站已上传的图片文件名（去重）
-  var content = document.getElementById('edit-content').value;
-  var imgPattern = new RegExp(
-    'https://raw\\.githubusercontent\\.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + DOCS_PATH + '/images/([^)\\s]+)',
-    'g'
-  );
-  var imageFiles = {};
-  var m;
-  while ((m = imgPattern.exec(content)) !== null) {
-    imageFiles[m[1]] = true;
-  }
-  var filenames = Object.keys(imageFiles);
+  var imgFolder = DOCS_PATH + '/images/' + editPath.replace(/\.md$/, '');
 
   setStatus('正在删除...', 'info');
   try {
+    // 删除文章文件
     await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + fullPath, {
       method: 'DELETE', body: JSON.stringify({ message: '删除 ' + title, sha: sha, branch: BASE_BRANCH })
     });
 
-    // 删除文章中引用的图片
-    for (var i = 0; i < filenames.length; i++) {
-      var imgPath = DOCS_PATH + '/images/' + filenames[i];
-      try {
-        var imgFile = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath + '?ref=' + BASE_BRANCH);
-        await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
-          method: 'DELETE',
-          body: JSON.stringify({ message: '删除文章 ' + title + ' 时清理图片 ' + filenames[i], sha: imgFile.sha, branch: BASE_BRANCH })
-        });
-      } catch (e) {
-        // 图片可能不存在或已被删除，忽略继续
+    // 删除图片文件夹下所有文件
+    var deletedImgs = 0;
+    try {
+      var tree = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/trees/' + BASE_BRANCH + '?recursive=1');
+      var imgPrefix = imgFolder + '/';
+      for (var i = 0; i < tree.tree.length; i++) {
+        var item = tree.tree[i];
+        if (item.path.indexOf(imgPrefix) !== 0) continue;
+        var filename = item.path.substring(imgPrefix.length);
+        if (!filename) continue;
+        try {
+          await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + item.path, {
+            method: 'DELETE',
+            body: JSON.stringify({ message: '删除文章 ' + title + ' 时清理图片 ' + filename, sha: item.sha, branch: BASE_BRANCH })
+          });
+          deletedImgs++;
+        } catch (e2) { /* 单张删除失败忽略 */ }
       }
-    }
+    } catch (e) { /* 文件夹可能为空 */ }
 
-    setStatus('「' + title + '」已删除' + (filenames.length ? '（含 ' + filenames.length + ' 张图片）' : ''), 'success');
+    setStatus('「' + title + '」已删除' + (deletedImgs ? '（含 ' + deletedImgs + ' 张图片）' : ''), 'success');
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';
     cleanPendingImages();
