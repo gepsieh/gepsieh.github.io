@@ -167,7 +167,9 @@
             <button type="button" data-action="ul">无序列表</button>
             <button type="button" data-action="ol">有序列表</button>
             <button type="button" data-action="link">链接</button>
+            <button type="button" data-action="image">🖼️ 图片</button>
           </div>
+          <input type="file" id="image-input" accept="image/*" style="display:none;">
           <div class="editor-preview-wrapper">
             <div class="editor-col">
               <textarea id="edit-content" placeholder="在这里写 Markdown 内容..."></textarea>
@@ -453,14 +455,63 @@ document.querySelector('.toolbar').addEventListener('click', function(e) {
     ul: ['- $1', '列表项'], ol: ['1. $1', '列表项'],
     link: ['[$1](https://)', '链接文字']
   };
-  var a = map[btn.dataset.action];
-  if (a) { insertMarkdown(ta, a[0], a[1]); updatePreview(); }
+  if (btn.dataset.action === 'image') {
+    document.getElementById('image-input').click();
+  } else {
+    var a = map[btn.dataset.action];
+    if (a) { insertMarkdown(ta, a[0], a[1]); updatePreview(); }
+  }
 });
 
 document.getElementById('edit-content').addEventListener('input', updatePreview);
 document.getElementById('edit-content').addEventListener('keydown', function(e) {
   if (e.key === 'Tab') { e.preventDefault(); var ta = this; ta.setRangeText('  ', ta.selectionStart, ta.selectionStart, 'end'); }
 });
+
+// 图片上传（paste 和 文件选择 共用）
+async function uploadImage(blob, ta) {
+  var start = ta.selectionStart;
+  var ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/gif' ? 'gif' : 'jpg';
+  var filename = 'img-' + Date.now().toString(36) + '.' + ext;
+
+  // 先用 blob URL 插入预览
+  var blobUrl = URL.createObjectURL(blob);
+  var mdImg = '![' + filename + '](' + blobUrl + ')';
+  ta.setRangeText('\n' + mdImg + '\n', start, start, 'end');
+  updatePreview();
+
+  setStatus('正在上传图片...', 'info');
+
+  try {
+    var reader = new FileReader();
+    var b64 = await new Promise(function(resolve) {
+      reader.onload = function() { resolve(reader.result.split(',')[1]); };
+      reader.readAsDataURL(blob);
+    });
+
+    var imgPath = DOCS_PATH + '/images/' + filename;
+
+    var result = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: '上传图片 ' + filename,
+        content: b64,
+        branch: BASE_BRANCH
+      })
+    });
+
+    // 替换为永久 URL
+    var rawUrl = result.content.download_url;
+    ta.value = ta.value.replace(blobUrl, rawUrl);
+    URL.revokeObjectURL(blobUrl);
+    updatePreview();
+    setStatus('图片已上传', 'success');
+    setTimeout(function() { setStatus(''); }, 1500);
+  } catch (err) {
+    URL.revokeObjectURL(blobUrl);
+    setStatus('图片上传失败：' + err.message, 'error');
+  }
+}
 
 // 粘贴图片
 document.getElementById('edit-content').addEventListener('paste', async function(e) {
@@ -469,54 +520,20 @@ document.getElementById('edit-content').addEventListener('paste', async function
 
   for (var i = 0; i < items.length; i++) {
     if (items[i].type.indexOf('image') !== 0) continue;
-
     e.preventDefault();
-    var blob = items[i].getAsFile();
-    var ta = this;
-    var start = ta.selectionStart;
-
-    var ext = blob.type === 'image/png' ? 'png' : blob.type === 'image/gif' ? 'gif' : 'jpg';
-    var filename = 'img-' + Date.now().toString(36) + '.' + ext;
-
-    // 先用 blob URL 插入预览
-    var blobUrl = URL.createObjectURL(blob);
-    var mdImg = '![' + filename + '](' + blobUrl + ')';
-    ta.setRangeText('\n' + mdImg + '\n', start, start, 'end');
-    updatePreview();
-
-    setStatus('正在上传图片...', 'info');
-
-    try {
-      var reader = new FileReader();
-      var b64 = await new Promise(function(resolve) {
-        reader.onload = function() { resolve(reader.result.split(',')[1]); };
-        reader.readAsDataURL(blob);
-      });
-
-      var imgPath = DOCS_PATH + '/images/' + filename;
-
-      var result = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + imgPath, {
-        method: 'PUT',
-        body: JSON.stringify({
-          message: '上传图片 ' + filename,
-          content: b64,
-          branch: BASE_BRANCH
-        })
-      });
-
-      // 替换为永久 URL
-      var rawUrl = result.content.download_url;
-      ta.value = ta.value.replace(blobUrl, rawUrl);
-      URL.revokeObjectURL(blobUrl);
-      updatePreview();
-      setStatus('图片已上传', 'success');
-      setTimeout(function() { setStatus(''); }, 1500);
-    } catch (err) {
-      URL.revokeObjectURL(blobUrl);
-      setStatus('图片上传失败：' + err.message, 'error');
-    }
+    uploadImage(items[i].getAsFile(), this);
     break;
   }
+});
+
+// 文件选择上传图片
+document.getElementById('image-input').addEventListener('change', function(e) {
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+  var ta = document.getElementById('edit-content');
+  uploadImage(file, ta);
+  // 重置 input 以便可以重复选择同一文件
+  this.value = '';
 });
 
 // ====== 保存 ======
