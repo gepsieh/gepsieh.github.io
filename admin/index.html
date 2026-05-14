@@ -117,13 +117,8 @@
   <div id="login-view">
     <h1>📝 原神资料站 · 在线编辑</h1>
     <div class="oauth-box">
-      <p style="margin-bottom:0.8rem;color:#475569;font-size:0.92rem;">使用 GitHub 账号安全登录，无需手动创建 Token</p>
+      <p style="margin-bottom:0.8rem;color:#475569;font-size:0.92rem;">使用 GitHub 账号安全登录</p>
       <button class="btn-primary" onclick="startOAuth()" style="font-size:1rem;padding:10px 28px;">🔐 使用 GitHub 登录</button>
-      <div class="or">或者使用 Token 登录</div>
-      <div style="display:flex;gap:8px;">
-        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="flex:1;">
-        <button class="btn-primary" onclick="doLogin()" style="white-space:nowrap;">登录</button>
-      </div>
     </div>
     <div class="status" id="login-status"></div>
   </div>
@@ -132,10 +127,13 @@
   <div id="editor-view" class="hidden">
     <h1>📝 原神资料站 · 在线编辑</h1>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <span style="color:#888;">已登录：<strong id="user-name"></strong></span>
+      <span style="display:flex;align-items:center;gap:8px;color:#888;">
+        <img id="user-avatar" style="width:28px;height:28px;border-radius:50%;display:none;border:1px solid #e2e8f0;">
+        <strong id="user-name"></strong>
+      </span>
       <div>
         <button class="btn" id="btn-list" onclick="goToList()">📋 文章列表</button>
-        <button class="btn" id="btn-logout" onclick="logout()">❌ 退出</button>
+        <button class="btn" id="btn-logout" onclick="logout()">🚪 登出</button>
       </div>
     </div>
     <div class="status" id="status"></div>
@@ -262,8 +260,11 @@ async function handleOAuthCallback() {
     var user = await userR.json();
     setToken(token);
     localStorage.setItem('gh_user', user.login);
+    localStorage.setItem('gh_avatar', user.avatar_url);
     window.history.replaceState({}, document.title, window.location.pathname);
     document.getElementById('user-name').textContent = user.login;
+    document.getElementById('user-avatar').src = user.avatar_url;
+    document.getElementById('user-avatar').style.display = '';
     showEditorView();
     loadArticles();
     return true;
@@ -289,12 +290,29 @@ function showEditorView() {
   document.getElementById('btn-list').style.display = 'none';
 }
 
-function logout() {
+async function logout() {
+  var token = getToken();
   triggerDeploy(true);
+
+  // 撤销 OAuth 授权，下次登录需重新授权
+  if (token) {
+    try {
+      await fetch('https://api.github.com/applications/' + OAUTH_CLIENT_ID + '/grant', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      });
+    } catch (e) { /* 撤销失败不影响退出 */ }
+  }
+
   localStorage.removeItem('gh_token');
   localStorage.removeItem('gh_user');
+  localStorage.removeItem('gh_avatar');
   sessionStorage.removeItem('oauth_state');
-  document.getElementById('token-input').value = '';
+  document.getElementById('user-avatar').style.display = 'none';
   document.getElementById('login-status').className = 'status';
   document.getElementById('login-status').textContent = '';
   showLoginView();
@@ -322,27 +340,6 @@ async function triggerDeploy(silent) {
     if (!silent) setTimeout(function() { setStatus(''); }, 2000);
   } catch (e) {
     if (!silent) setStatus('触发重建失败：' + e.message, 'error');
-  }
-}
-
-async function doLogin() {
-  var token = document.getElementById('token-input').value.trim();
-  var s = document.getElementById('login-status');
-  if (!token) { s.className = 'status error'; s.textContent = '请输入 Token'; return; }
-  s.className = 'status info'; s.textContent = '验证中...';
-  try {
-    var r = await fetch('https://api.github.com/user', {
-      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    var u = await r.json();
-    setToken(token);
-    localStorage.setItem('gh_user', u.login);
-    document.getElementById('user-name').textContent = u.login;
-    showEditorView();
-    loadArticles();
-  } catch (e) {
-    s.className = 'status error'; s.textContent = 'Token 无效: ' + e.message;
   }
 }
 
@@ -887,7 +884,9 @@ async function deleteArticle() {
       var token = getToken();
       if (token) {
         var user = localStorage.getItem('gh_user');
+        var avatar = localStorage.getItem('gh_avatar');
         if (user) document.getElementById('user-name').textContent = user;
+        if (avatar) { document.getElementById('user-avatar').src = avatar; document.getElementById('user-avatar').style.display = ''; }
         showEditorView();
         loadArticles();
       } else {
@@ -900,7 +899,9 @@ async function deleteArticle() {
   var token = getToken();
   if (token) {
     var user = localStorage.getItem('gh_user');
+    var avatar = localStorage.getItem('gh_avatar');
     if (user) document.getElementById('user-name').textContent = user;
+    if (avatar) { document.getElementById('user-avatar').src = avatar; document.getElementById('user-avatar').style.display = ''; }
     showEditorView();
     loadArticles();
   } else {
