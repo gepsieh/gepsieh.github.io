@@ -203,9 +203,9 @@ const BASE_BRANCH = 'main';
 const DOCS_PATH = 'docs';
 
 // GitHub OAuth App 配置（需要注册 OAuth App: https://github.com/settings/developers）
-// 回调地址设置为: https://gepsieh.github.io/admin/
+// 必须与 OAuth App 中的 "Authorization callback URL" 完全一致（包括末尾斜杠）
 const OAUTH_CLIENT_ID = 'Ov23lil851QegM31ONal';
-const OAUTH_REDIRECT_URI = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+const OAUTH_REDIRECT_URI = 'https://gepsieh.github.io/admin/';
 
 // ====== OAuth PKCE 工具函数 ======
 function base64URL(buf) {
