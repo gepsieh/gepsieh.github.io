@@ -262,11 +262,24 @@ async function handleOAuthCallback() {
     setToken(token);
     localStorage.setItem('gh_user', user.login);
     localStorage.setItem('gh_avatar', user.avatar_url);
+
+    // 检查写权限
+    var repoR = await fetch('https://api.github.com/repos/' + REPO_OWNER + '/' + REPO_NAME, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (repoR.ok) {
+      var repoInfo = await repoR.json();
+      localStorage.setItem('gh_can_write', repoInfo.permissions && repoInfo.permissions.push ? '1' : '0');
+    } else {
+      localStorage.setItem('gh_can_write', '0');
+    }
+
     window.history.replaceState({}, document.title, window.location.pathname);
     document.getElementById('user-name').textContent = user.login;
     document.getElementById('user-avatar').src = user.avatar_url;
     document.getElementById('user-avatar').style.display = '';
     showEditorView();
+    applyWritePermission();
     loadArticles();
     return true;
   } catch (e) {
@@ -291,6 +304,32 @@ function showEditorView() {
   document.getElementById('btn-list').style.display = 'none';
 }
 
+function applyWritePermission() {
+  var canWrite = localStorage.getItem('gh_can_write') === '1';
+
+  if (!canWrite) {
+    document.getElementById('login-status').className = 'status info';
+    document.getElementById('login-status').textContent = '⚠️ 您没有写权限，当前为只读模式';
+
+    // 文章列表页：隐藏新建 / 刷新站点
+    var newBtn = document.querySelector('#tab-list > .btn-primary');
+    var deployBtns = document.querySelectorAll('#tab-list > .btn');
+    if (newBtn) newBtn.style.display = 'none';
+    deployBtns.forEach(function(b) { b.style.display = 'none'; });
+
+    // 编辑器：禁用所有输入
+    document.getElementById('edit-title').disabled = true;
+    document.getElementById('edit-category').disabled = true;
+    document.getElementById('edit-content').readOnly = true;
+    var toolbarBtns = document.querySelectorAll('.toolbar button');
+    toolbarBtns.forEach(function(b) { b.disabled = true; });
+    document.getElementById('delete-btn').classList.add('hidden');
+    // 隐藏提交/删除按钮行
+    var inlineGroup = document.querySelector('#tab-edit .inline-group');
+    if (inlineGroup) inlineGroup.style.display = 'none';
+  }
+}
+
 async function logout() {
   var token = getToken();
   triggerDeploy(true);
@@ -312,6 +351,7 @@ async function logout() {
   localStorage.removeItem('gh_token');
   localStorage.removeItem('gh_user');
   localStorage.removeItem('gh_avatar');
+  localStorage.removeItem('gh_can_write');
   sessionStorage.removeItem('oauth_state');
   document.getElementById('user-avatar').style.display = 'none';
   document.getElementById('login-status').className = 'status';
@@ -467,6 +507,7 @@ function showTab(tab) {
 }
 
 function newArticle() {
+  if (localStorage.getItem('gh_can_write') !== '1') return;
   cleanPendingImages();
   document.getElementById('edit-path').value = '';
   document.getElementById('edit-sha').value = '';
@@ -616,6 +657,7 @@ document.getElementById('image-input').addEventListener('change', function(e) {
 
 // ====== 保存 ======
 async function saveArticle() {
+  if (localStorage.getItem('gh_can_write') !== '1') { setStatus('只读模式，无法保存', 'error'); return; }
   var title = document.getElementById('edit-title').value.trim();
   var category = document.getElementById('edit-category').value;
   var content = document.getElementById('edit-content').value;
@@ -830,6 +872,7 @@ async function saveArticle() {
 
 // ====== 删除 ======
 async function deleteArticle() {
+  if (localStorage.getItem('gh_can_write') !== '1') { setStatus('只读模式，无法删除', 'error'); return; }
   var editPath = document.getElementById('edit-path').value;
   var sha = document.getElementById('edit-sha').value;
   var title = document.getElementById('edit-title').value;
@@ -889,6 +932,7 @@ async function deleteArticle() {
         if (user) document.getElementById('user-name').textContent = user;
         if (avatar) { document.getElementById('user-avatar').src = avatar; document.getElementById('user-avatar').style.display = ''; }
         showEditorView();
+        applyWritePermission();
         loadArticles();
       } else {
         showLoginView();
@@ -904,6 +948,7 @@ async function deleteArticle() {
     if (user) document.getElementById('user-name').textContent = user;
     if (avatar) { document.getElementById('user-avatar').src = avatar; document.getElementById('user-avatar').style.display = ''; }
     showEditorView();
+    applyWritePermission();
     loadArticles();
   } else {
     showLoginView();
