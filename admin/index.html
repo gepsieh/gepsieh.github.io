@@ -72,6 +72,7 @@
     .oauth-box { margin: 1rem 0; padding: 1.2rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; }
     .oauth-box .or { margin: 1rem 0; color: #94a3b8; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
     .oauth-box .or::before, .oauth-box .or::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+    button:disabled, input:disabled, select:disabled, textarea[readonly] { cursor: not-allowed; opacity: 0.6; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
@@ -129,12 +130,12 @@
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <span></span>
       <div style="display:flex;align-items:center;gap:10px;">
-        <button class="btn" id="btn-list" onclick="goToList()">📋 文章列表</button>
         <span style="display:flex;align-items:center;gap:6px;color:#888;font-size:14px;">
           <span id="readonly-badge" style="display:none;background:#fff3cd;color:#856404;padding:1px 6px;border-radius:4px;font-size:12px;font-weight:600;">只读模式</span>
           <img id="user-avatar" style="width:26px;height:26px;border-radius:50%;display:none;border:1px solid #e2e8f0;">
           <strong id="user-name"></strong>
         </span>
+        <button class="btn" id="btn-list" onclick="goToList()">📋 文章列表</button>
         <button class="btn" id="btn-logout" onclick="logout()">🚪 登出</button>
       </div>
     </div>
