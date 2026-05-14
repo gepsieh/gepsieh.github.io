@@ -643,18 +643,6 @@ async function saveArticle() {
   var pendingUrls = Object.keys(_pendingImages);
   if (pendingUrls.length) {
     setStatus('正在上传图片...', 'info');
-    // 确保图片文件夹存在（创建一个 .gitkeep 空文件）
-    var gitkeepPath = imgFolder + '/.gitkeep';
-    try {
-      await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + gitkeepPath + '?ref=' + BASE_BRANCH);
-    } catch (e) {
-      try {
-        await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + gitkeepPath, {
-          method: 'PUT',
-          body: JSON.stringify({ message: '创建图片文件夹', content: btoa(''), branch: BASE_BRANCH })
-        });
-      } catch (e2) { /* 忽略 */ }
-    }
     for (var i = 0; i < pendingUrls.length; i++) {
       var blobUrl = pendingUrls[i];
       var img = _pendingImages[blobUrl];
@@ -687,6 +675,47 @@ async function saveArticle() {
     contentElem.value = content;
     updatePreview();
   }
+
+  // 清理不再被内容引用的孤儿图片
+  try {
+    var absPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + imgFolder + '/';
+    var absRe = new RegExp(absPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^)\\s]+)', 'g');
+    var relRe2 = new RegExp('images/' + imgSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/([^)\\s]+)', 'g');
+    var refdFiles = {};
+    var m3;
+    while ((m3 = absRe.exec(content)) !== null) refdFiles[m3[1]] = true;
+    while ((m3 = relRe2.exec(content)) !== null) refdFiles[m3[1]] = true;
+
+    var tree = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/trees/' + BASE_BRANCH + '?recursive=1');
+    var folderPrefix = imgFolder + '/';
+    var hasOtherImages = false;
+    for (var ti = 0; ti < tree.tree.length; ti++) {
+      var item = tree.tree[ti];
+      if (item.path.indexOf(folderPrefix) !== 0) continue;
+      var fname = item.path.substring(folderPrefix.length);
+      if (!fname) continue;
+      if (fname === '.gitkeep') continue;
+      hasOtherImages = true;
+      if (refdFiles[fname]) continue;
+      try {
+        await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + item.path, {
+          method: 'DELETE',
+          body: JSON.stringify({ message: '清理未引用图片 ' + fname, sha: item.sha, branch: BASE_BRANCH })
+        });
+      } catch (e2) { /* 单文件删除失败忽略 */ }
+    }
+    // 如果有其他图片或待上传的新图片，则删除 .gitkeep；如果文件夹已空则保留 .gitkeep
+    var gkPath = imgFolder + '/.gitkeep';
+    if (hasOtherImages || pendingUrls.length) {
+      try {
+        var gkFile = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + gkPath + '?ref=' + BASE_BRANCH);
+        await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + gkPath, {
+          method: 'DELETE',
+          body: JSON.stringify({ message: '清理 .gitkeep', sha: gkFile.sha, branch: BASE_BRANCH })
+        });
+      } catch (e2) { /* .gitkeep may not exist */ }
+    }
+  } catch (e) { /* 文件夹可能尚不存在 */ }
 
   var norm = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   var mdContent = '# ' + title + '\n\n' + norm + '\n';
