@@ -121,6 +121,13 @@
       <p style="margin-bottom:0.8rem;color:#475569;font-size:0.92rem;">使用 GitHub 账号安全登录</p>
       <button class="btn-primary" onclick="startOAuth()" style="font-size:1rem;padding:10px 28px;">🔐 使用 GitHub 登录</button>
     </div>
+    <div class="oauth-box hidden" id="dev-login-box" style="margin-top:-0.5rem;">
+      <div class="or">本地调试 — Token 登录</div>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="flex:1;">
+        <button class="btn-primary" onclick="doDevLogin()" style="white-space:nowrap;">本地登录</button>
+      </div>
+    </div>
     <div class="status" id="login-status"></div>
   </div>
 
@@ -346,6 +353,98 @@ async function handleOAuthCallback() {
   }
 }
 
+// ====== 本地调试 ======
+function isDev() {
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
+
+async function doDevLogin() {
+  var token = el('token-input').value.trim();
+  var s = el('login-status');
+  if (!token) { s.className = 'status error'; s.textContent = '请输入 Token'; return; }
+  s.className = 'status info'; s.textContent = '验证中...';
+  try {
+    var r = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var user = await r.json();
+    setToken(token);
+    localStorage.setItem('gh_user', user.login);
+    localStorage.setItem('gh_avatar', user.avatar_url);
+    var repoR = await fetch('https://api.github.com/repos/' + REPO_OWNER + '/' + REPO_NAME, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (repoR.ok) {
+      var ri = await repoR.json();
+      localStorage.setItem('gh_can_write', ri.permissions && ri.permissions.push ? '1' : '0');
+    } else {
+      localStorage.setItem('gh_can_write', '0');
+    }
+    restoreSession();
+  } catch (e) {
+    s.className = 'status error'; s.textContent = 'Token 无效: ' + e.message;
+  }
+}
+
+// ====== 冒烟测试 ======
+function runSmokeTests() {
+  console.log('🧪 冒烟测试开始...');
+  var failures = [];
+  function assert(cond, name) {
+    if (!cond) { failures.push(name); console.error('  ❌ ' + name); }
+    else console.log('  ✅ ' + name);
+  }
+
+  // DOM 元素检查
+  assert(el('login-view'), 'login-view 存在');
+  assert(el('editor-view'), 'editor-view 存在');
+  assert(el('article-list'), 'article-list 存在');
+  assert(el('tab-list'), 'tab-list 存在');
+  assert(el('tab-edit'), 'tab-edit 存在');
+  assert(el('edit-title'), 'edit-title 存在');
+  assert(el('edit-content'), 'edit-content 存在');
+  assert(el('edit-category'), 'edit-category 存在');
+  assert(el('edit-path'), 'edit-path 存在');
+  assert(el('edit-sha'), 'edit-sha 存在');
+  assert(el('delete-btn'), 'delete-btn 存在');
+  assert(el('live-preview'), 'live-preview 存在');
+  assert(el('search-panel') === null, 'search-panel 已移除');
+  assert(document.querySelector('.toolbar'), 'toolbar 存在');
+
+  // 核心函数检查
+  assert(typeof escapeRegex === 'function', 'escapeRegex 已定义');
+  assert(typeof b64Encode === 'function', 'b64Encode 已定义');
+  assert(typeof b64Decode === 'function', 'b64Decode 已定义');
+  assert(typeof getTree === 'function', 'getTree 已定义');
+  assert(typeof clearTreeCache === 'function', 'clearTreeCache 已定义');
+  assert(typeof parseArticleTree === 'function', 'parseArticleTree 已定义');
+  assert(typeof startOAuth === 'function', 'startOAuth 已定义');
+  assert(typeof handleOAuthCallback === 'function', 'handleOAuthCallback 已定义');
+  assert(typeof restoreSession === 'function', 'restoreSession 已定义');
+  assert(typeof applyWritePermission === 'function', 'applyWritePermission 已定义');
+  assert(typeof logout === 'function', 'logout 已定义');
+  assert(typeof api === 'function', 'api 已定义');
+  assert(typeof loadArticles === 'function', 'loadArticles 已定义');
+  assert(typeof loadCategories === 'function', 'loadCategories 已定义');
+  assert(typeof newArticle === 'function', 'newArticle 已定义');
+  assert(typeof editArticle === 'function', 'editArticle 已定义');
+  assert(typeof saveArticle === 'function', 'saveArticle 已定义');
+  assert(typeof deleteArticle === 'function', 'deleteArticle 已定义');
+  assert(typeof updatePreview === 'function', 'updatePreview 已定义');
+  assert(typeof b64Encode('测试') === btoa(String.fromCharCode.apply(null, new TextEncoder().encode('测试'))), 'b64Encode 正确');
+
+  // 工具函数检查
+  assert(escapeRegex('.+?') === '\\.\\+\\?', 'escapeRegex 转义正确');
+
+  if (!failures.length) {
+    console.log('🎉 所有冒烟测试通过');
+  } else {
+    console.error('💥 ' + failures.length + ' 项测试失败');
+  }
+  return failures;
+}
+
 // ====== 认证 ======
 function getToken() { return localStorage.getItem('gh_token'); }
 function setToken(t) { localStorage.setItem('gh_token', t); }
@@ -353,6 +452,7 @@ function setToken(t) { localStorage.setItem('gh_token', t); }
 function showLoginView() {
   document.getElementById('login-view').classList.remove('hidden');
   document.getElementById('editor-view').classList.add('hidden');
+  document.getElementById('dev-login-box').classList.toggle('hidden', !isDev());
 }
 
 function showEditorView() {
@@ -965,6 +1065,11 @@ function restoreSession() {
 
 // ====== 初始化 ======
 (function init() {
+  // 冒烟测试模式：?test
+  if (window.location.search.indexOf('test') !== -1) {
+    setTimeout(runSmokeTests, 500);
+  }
+
   // OAuth 回调：Worker 通过 URL hash 回传 access_token
   if (window.location.hash.indexOf('access_token=') !== -1) {
     handleOAuthCallback().then(function(handled) {
