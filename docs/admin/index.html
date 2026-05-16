@@ -209,6 +209,61 @@ const DOCS_PATH = 'docs';
 const OAUTH_CLIENT_ID = 'Ov23lil851QegM31ONal';
 const OAUTH_REDIRECT_URI = 'https://long-moon-1aef.314308943.workers.dev/callback';
 
+// ====== 工具函数 ======
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function b64Encode(str) {
+  var bytes = new TextEncoder().encode(str);
+  var bin = '';
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function b64Decode(b64) {
+  var raw = atob(b64.replace(/\n/g, ''));
+  var bytes = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function el(id) { return document.getElementById(id); }
+
+// ====== 树缓存 ======
+var _cachedTree = null;
+var _cachedTreeTime = 0;
+
+async function getTree() {
+  if (_cachedTree && Date.now() - _cachedTreeTime < 30000) return _cachedTree;
+  _cachedTree = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/trees/' + BASE_BRANCH + '?recursive=1');
+  _cachedTreeTime = Date.now();
+  return _cachedTree;
+}
+
+function clearTreeCache() { _cachedTree = null; }
+
+function parseArticleTree(tree) {
+  var articles = [];
+  var categories = {};
+  for (var i = 0; i < tree.tree.length; i++) {
+    var item = tree.tree[i];
+    if (item.path.indexOf(DOCS_PATH + '/') !== 0) continue;
+    var rel = item.path.substring(DOCS_PATH.length + 1);
+    if (!rel.endsWith('.md') || rel === 'index.md') continue;
+    if (rel.indexOf('/images/') !== -1) continue;
+    var parts = rel.split('/');
+    var cat = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+    var title = parts[parts.length - 1].replace('.md', '');
+    articles.push({ title: title, category: cat, path: rel });
+    if (cat) categories[cat] = true;
+  }
+  articles.sort(function(a, b) {
+    return a.category.localeCompare(b.category) || a.title.localeCompare(b.title);
+  });
+  return { articles: articles, categories: Object.keys(categories).sort() };
+}
+
 // ====== OAuth 工具函数 ======
 function randomString(len) {
   var arr = new Uint8Array(len);
@@ -353,7 +408,7 @@ async function logout() {
           'X-GitHub-Api-Version': '2022-11-28'
         }
       });
-    } catch (e) { /* 撤销失败不影响退出 */ }
+    } catch (e) { console.error('撤销 OAuth 授权失败:', e); }
   }
 
   localStorage.removeItem('gh_token');
@@ -405,7 +460,7 @@ async function api(path, opts) {
   }, opts.headers || {});
   var r = await fetch('https://api.github.com' + path, opts);
   if (!r.ok) {
-    var e = await r.json().catch(function(){ return {}; });
+    try { var e = await r.json(); } catch (_) { e = {}; }
     throw new Error(e.message || 'HTTP ' + r.status);
   }
   return r.json();
@@ -413,25 +468,11 @@ async function api(path, opts) {
 
 // ====== 文章列表 ======
 async function loadArticles() {
-  var list = document.getElementById('article-list');
+  var list = el('article-list');
   list.textContent = '加载中...';
   try {
-    var tree = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/trees/' + BASE_BRANCH + '?recursive=1');
-    var articles = [];
-    for (var i = 0; i < tree.tree.length; i++) {
-      var item = tree.tree[i];
-      if (item.path.indexOf(DOCS_PATH + '/') !== 0) continue;
-      var rel = item.path.substring(DOCS_PATH.length + 1);
-      if (!rel.endsWith('.md') || rel === 'index.md') continue;
-      if (rel.indexOf('/images/') !== -1) continue;
-      var parts = rel.split('/');
-      var cat = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
-      var title = parts[parts.length - 1].replace('.md', '');
-      articles.push({ title: title, category: cat, path: rel });
-    }
-    articles.sort(function(a, b) {
-      return a.category.localeCompare(b.category) || a.title.localeCompare(b.title);
-    });
+    var tree = await getTree();
+    var articles = parseArticleTree(tree).articles;
     if (!articles.length) { list.innerHTML = '<p style="color:#999;">暂无文章</p>'; return; }
 
     var html = '', currentCat = '';
@@ -453,24 +494,16 @@ async function loadArticles() {
 
 // ====== 分类 ======
 async function loadCategories() {
-  var sel = document.getElementById('edit-category');
+  var sel = el('edit-category');
+  if (!sel) return;
   sel.innerHTML = '';
   try {
-    var tree = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/trees/' + BASE_BRANCH + '?recursive=1');
-    var cats = {};
-    for (var i = 0; i < tree.tree.length; i++) {
-      var item = tree.tree[i];
-      if (item.path.indexOf(DOCS_PATH + '/') !== 0) continue;
-      var rel = item.path.substring(DOCS_PATH.length + 1);
-      if (!rel.endsWith('.md') || rel === 'index.md') continue;
-      var parts = rel.split('/');
-      if (parts.length > 1) cats[parts[0]] = true;
+    var tree = await getTree();
+    var categories = parseArticleTree(tree).categories;
+    for (var j = 0; j < categories.length; j++) {
+      sel.add(new Option(categories[j], categories[j]));
     }
-    var keys = Object.keys(cats).sort();
-    for (var j = 0; j < keys.length; j++) {
-      sel.add(new Option(keys[j], keys[j]));
-    }
-    if (!keys.length) sel.add(new Option('(暂无分类)', ''));
+    if (!categories.length) sel.add(new Option('(暂无分类)', ''));
   } catch (e) {
     sel.add(new Option('加载失败', ''));
   }
@@ -479,7 +512,7 @@ async function loadCategories() {
 function addCategory() {
   var name = prompt('请输入新分类名称：');
   if (!name) return;
-  var sel = document.getElementById('edit-category');
+  var sel = el('edit-category');
   for (var i = 0; i < sel.options.length; i++) {
     if (sel.options[i].value === name) { sel.value = name; return; }
   }
@@ -530,10 +563,6 @@ function newArticle() {
   updatePreview();
 }
 
-function discardEdit() {
-  showTab('list');
-}
-
 async function editArticle(path) {
   cleanPendingImages();
   setStatus('');
@@ -548,10 +577,7 @@ async function editArticle(path) {
     var file = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + DOCS_PATH + '/' + decoded + '?ref=' + BASE_BRANCH);
     document.getElementById('edit-sha').value = file.sha;
 
-    var binaryStr = atob(file.content.replace(/\n/g, ''));
-    var bytes = new Uint8Array(binaryStr.length);
-    for (var i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-    var content = new TextDecoder().decode(bytes);
+    var content = b64Decode(file.content);
 
     var parts = decoded.split('/');
     var title = parts[parts.length - 1].replace('.md', '');
@@ -702,8 +728,8 @@ async function saveArticle() {
       // 相对: 任意前缀 + images/oldSlug/filename（如 ../images/... 或 /images/...）
       var absOldPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + oldImgFolder + '/';
       var absNewPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + imgFolder + '/';
-      var absRegex = new RegExp(absOldPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^)\\s]+)', 'g');
-      var relPattern = 'images/' + oldImgSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/';
+      var absRegex = new RegExp(escapeRegex(absOldPrefix) + '([^)\\s]+)', 'g');
+      var relPattern = 'images/' + escapeRegex(oldImgSlug) + '/';
       var relRegex = new RegExp('(' + relPattern + ')([^)\\s]+)', 'g');
 
       // 先收集所有匹配结果，避免循环内修改 content 导致 lastIndex 错位
@@ -739,7 +765,7 @@ async function saveArticle() {
               body: JSON.stringify({ message: '迁移图片', sha: af.sha, branch: BASE_BRANCH })
             });
             content = content.replace(absM.oldUrl, absNewPrefix + absM.filename);
-          } catch (e2) { /* 单文件迁移失败跳过 */ }
+          } catch (e2) { console.error('迁移绝对图片失败:', absM.filename, e2); }
         }
 
         for (var rj = 0; rj < relMatches.length; rj++) {
@@ -759,7 +785,7 @@ async function saveArticle() {
               body: JSON.stringify({ message: '迁移图片', sha: rf.sha, branch: BASE_BRANCH })
             });
             content = content.replace(relM.match, relM.match.replace('images/' + oldImgSlug + '/', 'images/' + imgSlug + '/'));
-          } catch (e2) { /* 单文件迁移失败跳过 */ }
+          } catch (e2) { console.error('迁移相对图片失败:', relM.filename, e2); }
         }
       }
     }
@@ -806,8 +832,8 @@ async function saveArticle() {
   // 清理不再被内容引用的孤儿图片
   try {
     var absPrefix = 'https://raw.githubusercontent.com/' + REPO_OWNER + '/' + REPO_NAME + '/' + BASE_BRANCH + '/' + imgFolder + '/';
-    var absRe = new RegExp(absPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^)\\s]+)', 'g');
-    var relRe2 = new RegExp('images/' + imgSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/([^)\\s]+)', 'g');
+    var absRe = new RegExp(escapeRegex(absPrefix) + '([^)\\s]+)', 'g');
+    var relRe2 = new RegExp('images/' + escapeRegex(imgSlug) + '/([^)\\s]+)', 'g');
     var refdFiles = {};
     var m3;
     while ((m3 = absRe.exec(content)) !== null) refdFiles[m3[1]] = true;
@@ -829,7 +855,7 @@ async function saveArticle() {
           method: 'DELETE',
           body: JSON.stringify({ message: '清理未引用图片 ' + fname, sha: item.sha, branch: BASE_BRANCH })
         });
-      } catch (e2) { /* 单文件删除失败忽略 */ }
+      } catch (e2) { console.error('清理孤儿图片失败:', fname, e2); }
     }
     // 如果有其他图片或待上传的新图片，则删除 .gitkeep；如果文件夹已空则保留 .gitkeep
     var gkPath = imgFolder + '/.gitkeep';
@@ -840,17 +866,13 @@ async function saveArticle() {
           method: 'DELETE',
           body: JSON.stringify({ message: '清理 .gitkeep', sha: gkFile.sha, branch: BASE_BRANCH })
         });
-      } catch (e2) { /* .gitkeep may not exist */ }
+      } catch (e2) { /* .gitkeep 可能不存在 */ }
     }
-  } catch (e) { /* 文件夹可能尚不存在 */ }
+  } catch (e) { console.error('孤儿图片扫描失败:', e); }
 
   var norm = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
   var mdContent = '# ' + title + '\n\n' + norm + '\n';
-  var enc = new TextEncoder();
-  var bts = enc.encode(mdContent);
-  var bin = '';
-  for (var i = 0; i < bts.length; i++) bin += String.fromCharCode(bts[i]);
-  var b64 = btoa(bin);
+  var b64 = b64Encode(mdContent);
 
   setStatus('正在保存...', 'info');
   try {
@@ -869,6 +891,7 @@ async function saveArticle() {
     }
 
     setStatus('已保存到 main 分支', 'success');
+    clearTreeCache();
     _initialTitle = title;
     _initialContent = norm;
     document.getElementById('edit-path').value = '';
@@ -901,7 +924,7 @@ async function deleteArticle() {
     // 删除图片文件夹下所有文件
     var deletedImgs = 0;
     try {
-      var tree = await api('/repos/' + REPO_OWNER + '/' + REPO_NAME + '/git/trees/' + BASE_BRANCH + '?recursive=1');
+    var tree = await getTree();
       var imgPrefix = imgFolder + '/';
       for (var i = 0; i < tree.tree.length; i++) {
         var item = tree.tree[i];
@@ -914,11 +937,12 @@ async function deleteArticle() {
             body: JSON.stringify({ message: '删除文章 ' + title + ' 时清理图片 ' + filename, sha: item.sha, branch: BASE_BRANCH })
           });
           deletedImgs++;
-        } catch (e2) { /* 单张删除失败忽略 */ }
+        } catch (e2) { console.error('清理图片失败:', filename, e2); }
       }
-    } catch (e) { /* 文件夹可能为空 */ }
+    } catch (e) { console.error('图片文件夹扫描失败:', e); }
 
     setStatus('「' + title + '」已删除' + (deletedImgs ? '（含 ' + deletedImgs + ' 张图片）' : ''), 'success');
+    clearTreeCache();
     document.getElementById('edit-path').value = '';
     document.getElementById('edit-sha').value = '';
     cleanPendingImages();
@@ -928,37 +952,30 @@ async function deleteArticle() {
   }
 }
 
+// ====== Session ======
+function restoreSession() {
+  var user = localStorage.getItem('gh_user');
+  var avatar = localStorage.getItem('gh_avatar');
+  if (user) el('user-name').textContent = user;
+  if (avatar) { el('user-avatar').src = avatar; el('user-avatar').style.display = ''; }
+  showEditorView();
+  applyWritePermission();
+  loadArticles();
+}
+
 // ====== 初始化 ======
 (function init() {
   // OAuth 回调：Worker 通过 URL hash 回传 access_token
   if (window.location.hash.indexOf('access_token=') !== -1) {
     handleOAuthCallback().then(function(handled) {
       if (handled) return;
-      var token = getToken();
-      if (token) {
-        var user = localStorage.getItem('gh_user');
-        var avatar = localStorage.getItem('gh_avatar');
-        if (user) document.getElementById('user-name').textContent = user;
-        if (avatar) { document.getElementById('user-avatar').src = avatar; document.getElementById('user-avatar').style.display = ''; }
-        showEditorView();
-        applyWritePermission();
-        loadArticles();
-      } else {
-        showLoginView();
-      }
+      if (getToken()) { restoreSession(); } else { showLoginView(); }
     });
     return;
   }
 
-  var token = getToken();
-  if (token) {
-    var user = localStorage.getItem('gh_user');
-    var avatar = localStorage.getItem('gh_avatar');
-    if (user) document.getElementById('user-name').textContent = user;
-    if (avatar) { document.getElementById('user-avatar').src = avatar; document.getElementById('user-avatar').style.display = ''; }
-    showEditorView();
-    applyWritePermission();
-    loadArticles();
+  if (getToken()) {
+    restoreSession();
   } else {
     showLoginView();
   }
