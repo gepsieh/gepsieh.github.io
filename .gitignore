@@ -4,11 +4,4 @@ __pycache__/
 *.pyc
 
 # 爬虫数据
-miyoushe_data/
-miyoushe_classified/
 miyoushe_md/
-
-# 爬虫工具脚本
-miyoushe_crawler.py
-classify_posts.py
-convert_to_md.py
