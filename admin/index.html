@@ -64,6 +64,8 @@
     }
     .article-list a:hover { background: #f0f6ff; }
     .category-title { font-weight: 600; color: #555; padding: 0.5rem 0.8rem 0.2rem; font-size: 0.95rem; }
+    .category-group-title { font-weight: 700; color: #2c3e50; padding: 0.6rem 0.8rem 0.1rem; font-size: 1rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.2rem; }
+    .category-indent { padding-left: 1.5rem; font-size: 0.9rem; }
     .status { padding: 0.5rem; margin: 0.5rem 0; border-radius: 6px; font-size: 0.9rem; display: none; }
     .status.info { background: #e6f7ff; color: #1890ff; display: block; }
     .status.error { background: #fff2f0; color: #ff4d4f; display: block; }
@@ -120,6 +122,13 @@
     <div class="oauth-box">
       <p style="margin-bottom:0.8rem;color:#475569;font-size:0.92rem;">使用 GitHub 账号安全登录</p>
       <button class="btn-primary" onclick="startOAuth()" style="font-size:1rem;padding:10px 28px;">🔐 使用 GitHub 登录</button>
+    </div>
+    <div class="oauth-box hidden" id="dev-login-box" style="margin-top:-0.5rem;">
+      <div class="or">本地调试 — Token 登录</div>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="flex:1;">
+        <button class="btn-primary" onclick="doDevLogin()" style="white-space:nowrap;">本地登录</button>
+      </div>
     </div>
     <div class="status" id="login-status"></div>
   </div>
@@ -346,6 +355,98 @@ async function handleOAuthCallback() {
   }
 }
 
+// ====== 本地调试 ======
+function isDev() {
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
+
+async function doDevLogin() {
+  var token = el('token-input').value.trim();
+  var s = el('login-status');
+  if (!token) { s.className = 'status error'; s.textContent = '请输入 Token'; return; }
+  s.className = 'status info'; s.textContent = '验证中...';
+  try {
+    var r = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var user = await r.json();
+    setToken(token);
+    localStorage.setItem('gh_user', user.login);
+    localStorage.setItem('gh_avatar', user.avatar_url);
+    var repoR = await fetch('https://api.github.com/repos/' + REPO_OWNER + '/' + REPO_NAME, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    });
+    if (repoR.ok) {
+      var ri = await repoR.json();
+      localStorage.setItem('gh_can_write', ri.permissions && ri.permissions.push ? '1' : '0');
+    } else {
+      localStorage.setItem('gh_can_write', '0');
+    }
+    restoreSession();
+  } catch (e) {
+    s.className = 'status error'; s.textContent = 'Token 无效: ' + e.message;
+  }
+}
+
+// ====== 冒烟测试 ======
+function runSmokeTests() {
+  console.log('🧪 冒烟测试开始...');
+  var failures = [];
+  function assert(cond, name) {
+    if (!cond) { failures.push(name); console.error('  ❌ ' + name); }
+    else console.log('  ✅ ' + name);
+  }
+
+  // DOM 元素检查
+  assert(el('login-view'), 'login-view 存在');
+  assert(el('editor-view'), 'editor-view 存在');
+  assert(el('article-list'), 'article-list 存在');
+  assert(el('tab-list'), 'tab-list 存在');
+  assert(el('tab-edit'), 'tab-edit 存在');
+  assert(el('edit-title'), 'edit-title 存在');
+  assert(el('edit-content'), 'edit-content 存在');
+  assert(el('edit-category'), 'edit-category 存在');
+  assert(el('edit-path'), 'edit-path 存在');
+  assert(el('edit-sha'), 'edit-sha 存在');
+  assert(el('delete-btn'), 'delete-btn 存在');
+  assert(el('live-preview'), 'live-preview 存在');
+  assert(el('search-panel') === null, 'search-panel 已移除');
+  assert(document.querySelector('.toolbar'), 'toolbar 存在');
+
+  // 核心函数检查
+  assert(typeof escapeRegex === 'function', 'escapeRegex 已定义');
+  assert(typeof b64Encode === 'function', 'b64Encode 已定义');
+  assert(typeof b64Decode === 'function', 'b64Decode 已定义');
+  assert(typeof getTree === 'function', 'getTree 已定义');
+  assert(typeof clearTreeCache === 'function', 'clearTreeCache 已定义');
+  assert(typeof parseArticleTree === 'function', 'parseArticleTree 已定义');
+  assert(typeof startOAuth === 'function', 'startOAuth 已定义');
+  assert(typeof handleOAuthCallback === 'function', 'handleOAuthCallback 已定义');
+  assert(typeof restoreSession === 'function', 'restoreSession 已定义');
+  assert(typeof applyWritePermission === 'function', 'applyWritePermission 已定义');
+  assert(typeof logout === 'function', 'logout 已定义');
+  assert(typeof api === 'function', 'api 已定义');
+  assert(typeof loadArticles === 'function', 'loadArticles 已定义');
+  assert(typeof loadCategories === 'function', 'loadCategories 已定义');
+  assert(typeof newArticle === 'function', 'newArticle 已定义');
+  assert(typeof editArticle === 'function', 'editArticle 已定义');
+  assert(typeof saveArticle === 'function', 'saveArticle 已定义');
+  assert(typeof deleteArticle === 'function', 'deleteArticle 已定义');
+  assert(typeof updatePreview === 'function', 'updatePreview 已定义');
+  assert(typeof b64Encode('测试') === btoa(String.fromCharCode.apply(null, new TextEncoder().encode('测试'))), 'b64Encode 正确');
+
+  // 工具函数检查
+  assert(escapeRegex('.+?') === '\\.\\+\\?', 'escapeRegex 转义正确');
+
+  if (!failures.length) {
+    console.log('🎉 所有冒烟测试通过');
+  } else {
+    console.error('💥 ' + failures.length + ' 项测试失败');
+  }
+  return failures;
+}
+
 // ====== 认证 ======
 function getToken() { return localStorage.getItem('gh_token'); }
 function setToken(t) { localStorage.setItem('gh_token', t); }
@@ -353,6 +454,7 @@ function setToken(t) { localStorage.setItem('gh_token', t); }
 function showLoginView() {
   document.getElementById('login-view').classList.remove('hidden');
   document.getElementById('editor-view').classList.add('hidden');
+  document.getElementById('dev-login-box').classList.toggle('hidden', !isDev());
 }
 
 function showEditorView() {
@@ -475,13 +577,20 @@ async function loadArticles() {
     var articles = parseArticleTree(tree).articles;
     if (!articles.length) { list.innerHTML = '<p style="color:#999;">暂无文章</p>'; return; }
 
-    var html = '', currentCat = '';
+    var html = '', currentCat = '', currentTop = '';
     for (var j = 0; j < articles.length; j++) {
       var a = articles[j];
       if (a.category !== currentCat) {
         if (currentCat) html += '</div>';
         currentCat = a.category;
-        html += '<div class="category-title">' + (currentCat || '根目录') + '</div><div>';
+        var slashIdx = a.category.indexOf('/');
+        var topCat = a.category ? (slashIdx === -1 ? a.category : a.category.substring(0, slashIdx)) : '';
+        if (topCat !== currentTop) {
+          currentTop = topCat;
+          if (currentTop) html += '<div class="category-group-title">' + currentTop + '</div>';
+        }
+        var indentClass = (a.category.indexOf('/') !== -1) ? 'category-indent' : '';
+        html += '<div class="category-title ' + indentClass + '">' + (currentCat || '根目录') + '</div><div>';
       }
       html += '<a onclick="editArticle(\'' + encodeURIComponent(a.path) + '\')">' + a.title + '</a>';
     }
@@ -496,28 +605,73 @@ async function loadArticles() {
 async function loadCategories() {
   var sel = el('edit-category');
   if (!sel) return;
+  var curVal = sel.value;
   sel.innerHTML = '';
   try {
     var tree = await getTree();
     var categories = parseArticleTree(tree).categories;
+    if (!categories.length) { sel.add(new Option('(暂无分类)', '')); return; }
+
+    // 按顶层分组，构建 optgroup 层级结构
+    var groups = {};
     for (var j = 0; j < categories.length; j++) {
-      sel.add(new Option(categories[j], categories[j]));
+      var cat = categories[j];
+      var idx = cat.indexOf('/');
+      if (idx === -1) {
+        if (!groups['__root__']) groups['__root__'] = [];
+        groups['__root__'].push(cat);
+      } else {
+        var parent = cat.substring(0, idx);
+        if (!groups[parent]) groups[parent] = [];
+        groups[parent].push(cat);
+      }
     }
-    if (!categories.length) sel.add(new Option('(暂无分类)', ''));
+    // 顶级分类（无 / 的）
+    if (groups['__root__']) {
+      for (var k = 0; k < groups['__root__'].length; k++) {
+        sel.add(new Option(groups['__root__'][k], groups['__root__'][k]));
+      }
+    }
+    // 分组分类
+    var groupKeys = Object.keys(groups).filter(function(g) { return g !== '__root__'; }).sort();
+    for (var gi = 0; gi < groupKeys.length; gi++) {
+      var optgroup = document.createElement('optgroup');
+      optgroup.label = groupKeys[gi];
+      var items = groups[groupKeys[gi]].sort();
+      for (var ii = 0; ii < items.length; ii++) {
+        var slashIdx = items[ii].indexOf('/');
+        var display = items[ii].substring(slashIdx + 1);
+        optgroup.appendChild(new Option(display, items[ii]));
+      }
+      sel.appendChild(optgroup);
+    }
+    // 恢复选中值
+    if (curVal) {
+      for (var si = 0; si < sel.options.length; si++) {
+        if (sel.options[si].value === curVal) { sel.value = curVal; break; }
+      }
+    }
   } catch (e) {
     sel.add(new Option('加载失败', ''));
   }
 }
 
 function addCategory() {
-  var name = prompt('请输入新分类名称：');
-  if (!name) return;
   var sel = el('edit-category');
+  var cats = [];
   for (var i = 0; i < sel.options.length; i++) {
-    if (sel.options[i].value === name) { sel.value = name; return; }
+    if (!sel.options[i].disabled) cats.push(sel.options[i].value);
   }
-  sel.add(new Option(name, name));
-  sel.value = name;
+  var hint = cats.length ? '\n\n已有分类：' + cats.join('、') : '';
+  var path = prompt('输入分类路径（用 / 分隔层级）\n例：战斗系统/元素反应' + hint);
+  if (!path) return;
+  path = path.trim().replace(/\/+$/g, '').replace(/^\/+/g, '');
+  if (!path) return;
+  for (var i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === path) { sel.value = path; return; }
+  }
+  sel.add(new Option(path, path));
+  sel.value = path;
 }
 
 // ====== 编辑器 ======
@@ -703,11 +857,13 @@ async function saveArticle() {
   // 根据标题/分类重建路径
   var filePath;
   if (editPath) {
-    var pa = editPath.split('/');
-    pa[pa.length - 1] = title + '.md';
-    if (category && pa.length > 1) pa[pa.length - 2] = category;
-    else if (category) pa.unshift(category);
-    filePath = pa.join('/');
+    var filename = title + '.md';
+    if (category) {
+      var catParts = category.split('/');
+      filePath = catParts.concat(filename).join('/');
+    } else {
+      filePath = filename;
+    }
   } else {
     filePath = category ? category + '/' + title + '.md' : title + '.md';
   }
@@ -965,6 +1121,11 @@ function restoreSession() {
 
 // ====== 初始化 ======
 (function init() {
+  // 冒烟测试模式：?test
+  if (window.location.search.indexOf('test') !== -1) {
+    setTimeout(runSmokeTests, 500);
+  }
+
   // OAuth 回调：Worker 通过 URL hash 回传 access_token
   if (window.location.hash.indexOf('access_token=') !== -1) {
     handleOAuthCallback().then(function(handled) {
