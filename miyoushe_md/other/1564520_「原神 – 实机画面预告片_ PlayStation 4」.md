@@ -1,0 +1,15 @@
+---
+title: 「原神 – 实机画面预告片| PlayStation 4」
+category: other
+post_id: 1564520
+created_at: 2020-08-07 10:00:50
+reply_count: 319
+---
+
+![image](https://upload-bbs.miyoushe.com/upload/2020/09/23/74757616/17be53b72184cbaed1d232f3847f5f45_379702217360216804.png)
+
+旅行者，一起去新天地冒险吧！
+《原神》将于今年秋季登陆PS4， 并在PlayStation中国商店全球同步上线！
+届时，游戏将同时登陆全球 PS4、iOS、Android、PC 多个平台，一起期待手机-主机-PC 多端联机互通的畅玩体验吧！
+
+游戏预约现已开启，赶紧成为我们的伙伴吧~！
