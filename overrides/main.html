@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {{ page.content }}
+
+  {% if page.meta.git_revision_date_localized %}
+  <hr>
+  <div style="color: #888; font-size: 0.9em; margin-top: 1em; opacity: 0.8;">
+    <p>📅 发布于：{{ page.meta.git_creation_date_localized or '未知' }}</p>
+    <p>🔄 最后更新：{{ page.meta.git_revision_date_localized }}</p>
+  </div>
+  {% endif %}
+{% endblock %}

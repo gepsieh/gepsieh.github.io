@@ -1,0 +1,7 @@
+venv/
+site/
+__pycache__/
+*.pyc
+
+# 爬虫数据
+miyoushe_md/
