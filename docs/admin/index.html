@@ -64,6 +64,8 @@
     }
     .article-list a:hover { background: #f0f6ff; }
     .category-title { font-weight: 600; color: #555; padding: 0.5rem 0.8rem 0.2rem; font-size: 0.95rem; }
+    .category-group-title { font-weight: 700; color: #2c3e50; padding: 0.6rem 0.8rem 0.1rem; font-size: 1rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.2rem; }
+    .category-indent { padding-left: 1.5rem; font-size: 0.9rem; }
     .status { padding: 0.5rem; margin: 0.5rem 0; border-radius: 6px; font-size: 0.9rem; display: none; }
     .status.info { background: #e6f7ff; color: #1890ff; display: block; }
     .status.error { background: #fff2f0; color: #ff4d4f; display: block; }
@@ -575,13 +577,20 @@ async function loadArticles() {
     var articles = parseArticleTree(tree).articles;
     if (!articles.length) { list.innerHTML = '<p style="color:#999;">暂无文章</p>'; return; }
 
-    var html = '', currentCat = '';
+    var html = '', currentCat = '', currentTop = '';
     for (var j = 0; j < articles.length; j++) {
       var a = articles[j];
       if (a.category !== currentCat) {
         if (currentCat) html += '</div>';
         currentCat = a.category;
-        html += '<div class="category-title">' + (currentCat || '根目录') + '</div><div>';
+        var slashIdx = a.category.indexOf('/');
+        var topCat = a.category ? (slashIdx === -1 ? a.category : a.category.substring(0, slashIdx)) : '';
+        if (topCat !== currentTop) {
+          currentTop = topCat;
+          if (currentTop) html += '<div class="category-group-title">' + currentTop + '</div>';
+        }
+        var indentClass = (a.category.indexOf('/') !== -1) ? 'category-indent' : '';
+        html += '<div class="category-title ' + indentClass + '">' + (currentCat || '根目录') + '</div><div>';
       }
       html += '<a onclick="editArticle(\'' + encodeURIComponent(a.path) + '\')">' + a.title + '</a>';
     }
@@ -596,28 +605,73 @@ async function loadArticles() {
 async function loadCategories() {
   var sel = el('edit-category');
   if (!sel) return;
+  var curVal = sel.value;
   sel.innerHTML = '';
   try {
     var tree = await getTree();
     var categories = parseArticleTree(tree).categories;
+    if (!categories.length) { sel.add(new Option('(暂无分类)', '')); return; }
+
+    // 按顶层分组，构建 optgroup 层级结构
+    var groups = {};
     for (var j = 0; j < categories.length; j++) {
-      sel.add(new Option(categories[j], categories[j]));
+      var cat = categories[j];
+      var idx = cat.indexOf('/');
+      if (idx === -1) {
+        if (!groups['__root__']) groups['__root__'] = [];
+        groups['__root__'].push(cat);
+      } else {
+        var parent = cat.substring(0, idx);
+        if (!groups[parent]) groups[parent] = [];
+        groups[parent].push(cat);
+      }
     }
-    if (!categories.length) sel.add(new Option('(暂无分类)', ''));
+    // 顶级分类（无 / 的）
+    if (groups['__root__']) {
+      for (var k = 0; k < groups['__root__'].length; k++) {
+        sel.add(new Option(groups['__root__'][k], groups['__root__'][k]));
+      }
+    }
+    // 分组分类
+    var groupKeys = Object.keys(groups).filter(function(g) { return g !== '__root__'; }).sort();
+    for (var gi = 0; gi < groupKeys.length; gi++) {
+      var optgroup = document.createElement('optgroup');
+      optgroup.label = groupKeys[gi];
+      var items = groups[groupKeys[gi]].sort();
+      for (var ii = 0; ii < items.length; ii++) {
+        var slashIdx = items[ii].indexOf('/');
+        var display = items[ii].substring(slashIdx + 1);
+        optgroup.appendChild(new Option(display, items[ii]));
+      }
+      sel.appendChild(optgroup);
+    }
+    // 恢复选中值
+    if (curVal) {
+      for (var si = 0; si < sel.options.length; si++) {
+        if (sel.options[si].value === curVal) { sel.value = curVal; break; }
+      }
+    }
   } catch (e) {
     sel.add(new Option('加载失败', ''));
   }
 }
 
 function addCategory() {
-  var name = prompt('请输入新分类名称：');
-  if (!name) return;
   var sel = el('edit-category');
+  var cats = [];
   for (var i = 0; i < sel.options.length; i++) {
-    if (sel.options[i].value === name) { sel.value = name; return; }
+    if (!sel.options[i].disabled) cats.push(sel.options[i].value);
   }
-  sel.add(new Option(name, name));
-  sel.value = name;
+  var hint = cats.length ? '\n\n已有分类：' + cats.join('、') : '';
+  var path = prompt('输入分类路径（用 / 分隔层级）\n例：战斗系统/元素反应' + hint);
+  if (!path) return;
+  path = path.trim().replace(/\/+$/g, '').replace(/^\/+/g, '');
+  if (!path) return;
+  for (var i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === path) { sel.value = path; return; }
+  }
+  sel.add(new Option(path, path));
+  sel.value = path;
 }
 
 // ====== 编辑器 ======
@@ -803,11 +857,13 @@ async function saveArticle() {
   // 根据标题/分类重建路径
   var filePath;
   if (editPath) {
-    var pa = editPath.split('/');
-    pa[pa.length - 1] = title + '.md';
-    if (category && pa.length > 1) pa[pa.length - 2] = category;
-    else if (category) pa.unshift(category);
-    filePath = pa.join('/');
+    var filename = title + '.md';
+    if (category) {
+      var catParts = category.split('/');
+      filePath = catParts.concat(filename).join('/');
+    } else {
+      filePath = filename;
+    }
   } else {
     filePath = category ? category + '/' + title + '.md' : title + '.md';
   }

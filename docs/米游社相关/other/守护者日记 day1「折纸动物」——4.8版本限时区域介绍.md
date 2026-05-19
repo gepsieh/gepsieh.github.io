@@ -1,0 +1,10 @@
+---
+title: 守护者日记 day1「折纸动物」——4.8版本限时区域介绍
+category: other
+post_id: 54843969
+created_at: 2024-07-08 10:30:10
+reply_count: 950
+---
+![image](https://upload-bbs.miyoushe.com/upload/2024/07/05/75276539/e1cd63b02e029209a8dfb9b8182afa4a_4224874086602229333.png)旅行者好呀~限时区域「希穆兰卡」即将开放！打开这本神秘的书，我们就要踏上讨伐邪龙的旅途啦！一起感受童话王国「希穆兰卡」的魅力吧~
+P.S：「希穆兰卡」仅在4.8版本期间开放，请旅行者注意探索时间，及时前往哦~
+![image](https://upload-bbs.miyoushe.com/upload/2024/07/05/75276539/8880108b8305ed7469b54fc91b9cbb0d_2141984820330182396.jpg)![image](https://upload-bbs.miyoushe.com/upload/2024/07/08/75276539/018b7ad8dc68513c6598e60945793d54_3712326362476983016.gif)![image](https://upload-bbs.miyoushe.com/upload/2024/07/08/75276539/cf980f420f1e54e4d0a05c461c248d77_2806115525599459070.gif)![image](https://upload-bbs.miyoushe.com/upload/2024/07/08/75276539/8a2f0e5b62b699c41587fa477618f72a_7402225970727829372.gif)![image](https://upload-bbs.miyoushe.com/upload/2024/07/05/75276539/867a6751d5840f2023a010b6bbe16da6_8776644258014863312.jpg)![image](https://upload-bbs.miyoushe.com/upload/2024/07/08/75276539/ba9aae6ced6a80865ccbb4059e2c5480_5516613266495665582.gif)

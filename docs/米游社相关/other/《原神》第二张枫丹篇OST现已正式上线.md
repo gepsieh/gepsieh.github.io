@@ -1,0 +1,16 @@
+---
+title: 《原神》第二张枫丹篇OST现已正式上线
+category: other
+post_id: 49727751
+created_at: 2024-02-26 12:00:18
+reply_count: 158
+---
+![image](https://upload-bbs.miyoushe.com/upload/2024/02/26/75276539/0d42c0ba7f4695dcd2f882bd4c52d0d4_1367189448810177567.jpg)亲爱的旅行者，《原神》第二张枫丹篇OST「万流始源之海 Pelagic Primaevality」现已正式上线。
+
+欢迎旅行者前往下列平台，收听完整版OST。
+[>>>点进前往QQ音乐收听<<<](https://y.qq.com/w/album.html?albumId=47089206&ADTAG=hz_wb_sf&channelId=10081987)
+[>>>点进前往酷狗音乐收听<<<](https://www.kugou.com/album/84493278.html)
+[>>>点进前往Apple Music收听<<<](https://music.apple.com/cn/album/1730087546)
+
+专辑分为《她曾见的众水 Les grandes eaux qu'elle avait veillees》《黄铜与锻铁的节律 Galliard of Brass and Iron》与《直至万水的终焉 Ad Consummationem Aquarum》3张分碟，共收录68首由HOYO-MiX音乐团队为《原神》枫丹地区创作的原声音乐。
+![image](https://upload-bbs.miyoushe.com/upload/2024/02/26/75276539/5eccb0a3471b5b9be1cc0980a6a1f4ec_3529619558574490750.jpg)![image](https://upload-bbs.miyoushe.com/upload/2024/02/26/75276539/eb435390518408bd4bcc516f8948a619_9071548235496057520.jpg)![image](https://upload-bbs.miyoushe.com/upload/2024/02/26/75276539/9a80c279289644266647c147b68d91ec_4996534473047375258.jpg)![image](https://upload-bbs.miyoushe.com/upload/2024/02/26/75276539/21c459d2f3b5dfc605a41e4d790944d5_2173630548276021055.jpg)![image](https://upload-bbs.miyoushe.com/upload/2024/02/26/75276539/bd7fef66b04963f08c12cb5d36b29332_3095187875815023828.png)

@@ -1,0 +1,12 @@
+---
+title: 原神「月之六」版本PV音乐《逢归的谶羽》现已更新
+category: 版本PV_前瞻节目
+post_id: 74208867
+created_at: 2026-03-27 22:52:27
+reply_count: 46
+---
+亲爱的旅行者，原神「月之六」版本PV音乐《逢归的谶羽 Augured Homecoming》现已更新加入专辑《流星的轨迹 Footprints of the Traveler》中。后续版本PV曲目将随版本PV同步更新。
+欢迎旅行者前往下方音乐平台，收听最新版本PV曲目及完整版OST。
+[>>>点击前往QQ音乐收听<<<](http://t.cn/A6SdwHOR)
+[>>>点击前往酷狗音乐收听<<<](http://t.cn/A6SdwHOE)
+![image](https://upload-bbs.miyoushe.com/upload/2026/03/27/75276539/5e4160e6826c2702c33cf4960533d7b7_8712909136752260471.jpg)

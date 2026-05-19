@@ -1,0 +1,17 @@
+---
+title: 「原神☆FES」主舞台-千星奇域活动预告
+category: 千星奇域
+post_id: 71798872
+created_at: 2025-12-26 18:00:08
+reply_count: 182
+---
+旅行者好呀！
+「原神☆FES」主舞台将于1月2日开展千星奇域特别活动~
+
+据前方可靠情报，活动现场竟然——
+竟然要送真正的大冰箱！
+是时候展现过人的奇域技巧了！
+
+1月2日「原神☆FES」主舞台不见不散噢！
+
+![image](https://upload-bbs.miyoushe.com/upload/2025/12/26/378227958/2efa704a51caaa28b8686a535f7d0385_4709236505008755970.png)![image](https://upload-bbs.miyoushe.com/upload/2025/12/26/378227958/414656fb2b83bfdaf82ebb6b4389bf2f_2954039409040940792.png)![image](https://upload-bbs.miyoushe.com/upload/2025/12/26/378227958/ea2478a8765422a6dd02f0af4576fc55_8963827244117413393.png)![image](https://upload-bbs.miyoushe.com/upload/2025/12/26/378227958/f3c4a36f63f45139f8fa373fc0d8b66b_2070564518743160613.png)

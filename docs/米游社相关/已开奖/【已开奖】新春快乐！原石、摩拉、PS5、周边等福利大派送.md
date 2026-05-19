@@ -1,0 +1,48 @@
+---
+title: 【已开奖】新春快乐！原石、摩拉、PS5、周边等福利大派送
+category: 已开奖
+post_id: 15828763
+created_at: 2022-01-30 12:00:03
+reply_count: 135134
+---
+![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/a53da139fc91773bce95efd7d2e1f3c1_6326823836125222862.jpg)旅行者们好呀，这里是提瓦特徒步团(*･ω< ) 
+岁末的钟声已经敲响，这一年里，我们和各位旅行者一路相伴，在提瓦特大陆上收获了好多有趣的冒险故事。新的一年里，也想和旅行者一起继续开启新的冒险旅程！
+新年新气象，徒步团特地准备了一张新春祈愿卡，旅行者都有什么新春愿望呢？一起来分享吧！听说写在祈愿卡上的愿望更容易实现噢~
+![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/e441e487e5f4047b7f1bdcfc8e23078b_546425087981412431.jpg)
+![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/bd0b8ce2259f73c1ffa7bcada0198f02_686721143229151478.png)活动期间内，在[**#新春祈愿#**](https://bbs.mihoyo.com/ys/topicDetail/933)话题中，分享自己填写的新春祈愿卡+游戏UID，即视为参与成功。
+P.S UID为**游戏内个人信息**的ID数字，UID填写错误的话就没办法拿到原石和摩拉奖励了哟~
+
+![image](https://upload-bbs.miyoushe.com/upload/2022/01/30/75379477/dbd19b141212f2eea24daca4ae3c300b_5635935271697644019.png)2022年1月30日 - 2022年2月6日23:59 
+开奖时间：2022年2月11日晚，在本活动帖内更新获奖名单
+
+![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/ff92a7a056792fab9f9e46aa36a076e0_873729172889859693.png)索尼Play Station 5（日版-光驱版）
+捣蛋派对主题系列周边套装（随机角色）
+100原石
+50000摩拉
+
+活动期间成功参与活动的旅行者，**均可获得50000摩拉的奖励**。
+同时，我们将从所有成功参与的旅行者中：
+随机抽选**3名**，每人赠送**索尼Play Station 5（日版-光驱版） *1**；
+随机抽选**100名**，每人赠送**捣蛋派对主题系列周边套装****（随机角色）*****1**；
+随机抽选**5000名**，每人赠送**100原石**。
+
+![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/c83946d9d37692cfb6d20b10e142510b_4872113997395252794.png)1.禁止发布一切违反法律法规或社区规则的内容，参与本活动即代表您同意将您的UID及昵称发布至活动所在平台；
+2.若旅行者的发帖内容与本次活动无关，将会被视为无效参与；
+3.请旅行者关注系统通知，周边中奖信息会出现在里面哦，若周边获奖者在通知发出后未在指定时间前完成地址填写，则视为放弃奖励。如果旅行者获得了周边奖励，请按照以下步骤填写地址：[【填写地址教程】](https://bbs.mihoyo.com/ys/article/48940)
+
+**【活动实体奖励展示】**
+![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/b1bd7abb14d00b2b5651ed79b12bddbe_2594419787481356471.png)![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/7b909e6186793f3bb7d0c97d5f476a93_3685301240123407221.jpg)![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/69197695d409cddd18549b625e467bcf_7179266447980304878.jpg)![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/7b76c2b24111fe6fb714deda7d51d15c_5129582766176234893.jpg)![image](https://upload-bbs.miyoushe.com/upload/2022/01/28/75379477/51ba32e2e3854d2c34021e8438c863e0_2808917702306884219.jpg)
+
+
+
+---
+**▲**索尼Play Station 5（日版-光驱版）
+![image](https://upload-bbs.miyoushe.com/upload/2022/02/11/75379477/ecd8996e24234a7e09f0d78d636a3eac_2801590419782867426.png)
+**▲**捣蛋派对主题系列周边套装（随机角色）
+![image](https://upload-bbs.miyoushe.com/upload/2022/02/11/75379477/8323baa591fa249d37928a72e0fceca5_8727063554529764903.png)![image](https://upload-bbs.miyoushe.com/upload/2022/02/11/75379477/a060c3919fb38fb9fa5b6b95ed777b4f_7673025697073404796.png)![image](https://upload-bbs.miyoushe.com/upload/2022/02/11/75379477/fcaac3a463ca0b035d63f5c3c65dd6a3_5070968657067593140.png)![image](https://upload-bbs.miyoushe.com/upload/2022/02/11/75379477/b458b1bd2f4545f28aba9b83e14414f9_5245045870811864732.png)**▲**100原石
+由于获奖人数过多，后续会通过米游社的系统通知通知获奖的旅行者~
+
+**▲**50000摩拉
+活动期间成功参与活动的旅行者，均可获得50000摩拉的奖励，奖励会在10个工作日内发放到对应的游戏邮箱内。
+
+恭喜以上获奖旅行者，原石和摩拉奖励将在10个工作日内发放；周边奖励请注意查收奖励通知，并在规定时间范围内按照以下步骤填写地址：[【填写地址教程】](https://bbs.mihoyo.com/ys/article/48940)。若获奖者在通知发出后未在指定时间前完成地址填写，则视为放弃奖励。
