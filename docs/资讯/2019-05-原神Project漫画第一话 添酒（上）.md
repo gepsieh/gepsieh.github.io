@@ -1,0 +1,58 @@
+原神Project漫画|第一话 添酒（上）
+
+=====================
+
+**【建议在WiFi环境下阅读】**
+[原神Project漫画|目录索引](https://bbs.mihoyo.com/ys/article/52389)
+[上一话：原神Project漫画|序章 风之歌（下）](https://bbs.mihoyo.com/ys/article/54328)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/855ac9e194315e403734f2ed2f1d1a76_1692112178835174718.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/a1de783a109cd5e3eb9d441e59bd2f77_1621385618910362460.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/e7c9732cdeb7cb0c5ed1ff2c47b7a1e4_1126643728955293536.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/2c7d48e082acea79905cbebe81ab83b2_7461485826824765075.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/5a2bd65e1c5d3e6ba1db4bd6e1d38afe_4056447831945568221.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/94b328154b0e5726a6b785e1423f210b_1692112178835174718.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/ecb5f02e06aacd69af206b09d077ad4a_1162005479750593903.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/dfe01d449da77c6ce75005bec8ecd6a2_1126643728955293536.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/7451f568550fb2146810dd4eb0f0c694_1331387037387256792.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/b1a2111bf659b6d497a5c9f05ac54dc6_4056447831945568221.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/ee9ce291ba2bbdd67db0a9a779dedc96_1890032743265979471.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/acda7ea2e67d0b847cb6313ede336846_1162005479750593903.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/2bb0444417ae2b86f225b7b27aace9bf_678174860747372636.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/2efae6709388caf2570cdac57d014a78_1331387037387256792.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/8c847b5805077bc75175ba83be6ce1bb_1354165107320144474.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/34f192eac81c3d6a72e6b35a53c5382b_1890032743265979471.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/a20ead8a016895eecb7dfb8497350bcd_2201875598918904509.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/61f5045b0ef06832480e099b758d97da_678174860747372636.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/974724ce645fd061d5b25aa29b7f983c_4695725077144596579.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/d0ea46b75fc421df112d7d5ca182deba_1354165107320144474.jpg)
+
+![](https://upload-bbs.miyoushe.com/upload/2019/05/14/75379477/ca1705a6f6b27509daa830a0bf0b1da5_5961175671334150314.jpg)
+
+[下一话：原神Project漫画|第一话 添酒（下）](https://bbs.mihoyo.com/ys/article/54332)
+
+---
+
+- **分类**: 资讯
+- **发布日期**: 2019-05-14
+- **文章链接**: https://www.miyoushe.com/ys/article/54331
+- **原始 ID**: 54331
