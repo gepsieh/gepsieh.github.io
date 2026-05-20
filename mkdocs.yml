@@ -28,6 +28,7 @@ nav:
     - 资讯: 米游社相关/资讯/index.md
 
 markdown_extensions:
+- nl2br
 - pymdownx.arithmatex:
     generic: true
 
