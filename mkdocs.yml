@@ -39,6 +39,7 @@ extra_javascript:
 - javascripts/extra.js
 - javascripts/mathjax.js
 hooks:
+- hooks/gen_index.py
 - hooks/patch_lunr_zh.py
 plugins:
 - search:
