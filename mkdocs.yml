@@ -3,6 +3,30 @@ site_url: https://gepsieh.github.io
 site_description: 一些收集到的原神相关内容
 site_author: suzu
 use_directory_urls: false
+
+nav:
+  - Home: index.md
+  - 公式收集:
+    - 常规伤害公式: 公式收集/常规伤害公式.md
+    - 月感电伤害公式: 公式收集/月感电伤害公式.md
+    - 月结晶伤害公式: 公式收集/月结晶伤害公式.md
+    - 月绽放伤害公式: 公式收集/月绽放伤害公式.md
+    - 激化反应相关: 公式收集/激化反应相关.md
+    - 角色等级系数: 公式收集/角色等级系数.md
+  - 剧诗深渊危战记录:
+    - 2026.5: 剧诗深渊危战记录/2026.5.md
+  - 杂项:
+    - 参量质变仪: 杂项/参量质变仪.md
+    - 圣遗物相关: 杂项/圣遗物相关.md
+    - 抽卡概率: 杂项/抽卡概率.md
+    - 火奶班砂手法轴: 杂项/火奶班砂手法轴.md
+    - 祝圣之霜相关: 杂项/祝圣之霜相关.md
+    - 部分食材商人汇总: 杂项/部分食材商人汇总.md
+  - 米游社相关:
+    - 公告: 米游社相关/公告/index.md
+    - 活动: 米游社相关/活动/index.md
+    - 资讯: 米游社相关/资讯/index.md
+
 markdown_extensions:
 - pymdownx.arithmatex:
     generic: true
